@@ -1,0 +1,176 @@
+/* MÓDULO DE RUTINAS DEL ENTRENADOR */
+.ath-rt { max-width: 1150px; }
+.ath-rt-heading { display: flex; align-items: center; justify-content: space-between; gap: 18px; }
+.ath-rt-heading h2 { font-size: 23px; margin: 0 0 8px; }
+.ath-rt-heading h3 { font-size: 20px; margin: 0 0 8px; }
+.ath-rt-heading p, .ath-rt-muted { font-size: 13px; color: #7b899a; margin: 0; line-height: 1.6; }
+.ath-rt-primary, .ath-rt-secondary, .ath-rt-light { border: 0; border-radius: 11px; padding: 12px 18px; font-size: 13px; font-weight: 750; cursor: pointer; font-family: inherit; }
+.ath-rt-primary { background: #c5f277; color: #172638; }
+.ath-rt-primary:hover { background: #b3e765; }
+.ath-rt-secondary { background: #172638; color: white; }
+.ath-rt-secondary:hover { background: #29425a; }
+.ath-rt-light { background: #edf1f5; color: #34465a; }
+.ath-rt-primary:disabled, .ath-rt-secondary:disabled, .ath-rt-light:disabled { opacity: .6; cursor: not-allowed; }
+.ath-rt-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin: 25px 0; }
+.ath-rt-stat, .ath-rt-panel, .ath-rt-card { background: white; border: 1px solid #e3e9ef; border-radius: 17px; }
+.ath-rt-stat { padding: 24px; }
+.ath-rt-stat span { display: block; font-size: 13px; color: #7b899a; margin-bottom: 12px; }
+.ath-rt-stat strong { color: #172638; font-size: 32px; }
+.ath-rt-panel { padding: 26px; margin-top: 22px; }
+.ath-rt-panel > h3 { margin: 0 0 8px; font-size: 20px; }
+.ath-rt-form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; margin-top: 22px; }
+.ath-rt-full { grid-column: 1 / -1; }
+.ath-rt-field { display: flex; flex-direction: column; gap: 9px; font-size: 13px; color: #33445a; font-weight: 700; min-width: 0; }
+.ath-rt-field input, .ath-rt-field textarea, .ath-rt-add-controls select { width: 100%; min-width: 0; padding: 12px 13px; border: 1px solid #d9e1ea; border-radius: 10px; background: white; color: #172638; font-family: inherit; font-size: 14px; font-weight: 400; outline: none; }
+.ath-rt-field input:focus, .ath-rt-field textarea:focus, .ath-rt-add-controls select:focus { border-color: #80aa43; }
+.ath-rt-field textarea { resize: vertical; line-height: 1.6; }
+.ath-rt-add { display: flex; align-items: end; justify-content: space-between; gap: 16px; margin: 28px 0 15px; padding-top: 24px; border-top: 1px solid #e9eef3; }
+.ath-rt-add h4 { font-size: 17px; margin: 0 0 7px; }
+.ath-rt-add-controls { display: flex; gap: 10px; flex: 1; max-width: 490px; }
+.ath-rt-add-controls select { flex: 1; }
+.ath-rt-exercise-list { display: grid; gap: 13px; }
+.ath-rt-exercise { background: #f8fafc; border: 1px solid #e2e9f0; border-radius: 14px; padding: 20px; }
+.ath-rt-exercise-heading { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 18px; }
+.ath-rt-exercise-heading > div { display: flex; align-items: center; gap: 12px; }
+.ath-rt-order { display: grid; place-items: center; width: 34px; height: 34px; background: #e6f4d4; border-radius: 10px; font-weight: 800; color: #456d28; }
+.ath-rt-remove { background: #fff0ee; border: 1px solid #f4ccc7; color: #b42318; border-radius: 9px; padding: 9px 12px; font-size: 12px; font-weight: 700; cursor: pointer; }
+.ath-rt-numbers { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-bottom: 16px; }
+.ath-rt-hint { color: #748296; font-size: 12px; line-height: 1.6; margin-top: 16px; }
+.ath-rt-actions { display: flex; justify-content: flex-end; gap: 11px; margin-top: 24px; }
+.ath-rt-empty, .ath-rt-empty-small { text-align: center; color: #718095; background: #f8fafc; border: 1px dashed #dce5ee; border-radius: 14px; }
+.ath-rt-empty { padding: 50px 20px; margin-top: 20px; }
+.ath-rt-empty h3 { margin: 10px 0; color: #172638; }
+.ath-rt-empty p { font-size: 13px; }
+.ath-rt-empty-icon { color: #91b957; font-size: 38px; }
+.ath-rt-empty-small { padding: 25px 16px; font-size: 13px; }
+.ath-rt-list { display: grid; gap: 14px; margin-top: 23px; }
+.ath-rt-card { padding: 23px; }
+.ath-rt-card-header { display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+.ath-rt-card-header h4 { font-size: 18px; margin: 13px 0 8px; }
+.ath-rt-card-header p { font-size: 13px; color: #718095; line-height: 1.6; margin: 0 0 10px; }
+.ath-rt-card-header small { color: #8592a2; }
+.ath-rt-tag { background: #edf7df; color: #456d28; border-radius: 8px; padding: 7px 10px; font-size: 11px; font-weight: 800; }
+.ath-rt-details { border-top: 1px solid #e8edf2; margin-top: 20px; padding-top: 6px; }
+.ath-rt-detail { padding: 15px 0; border-bottom: 1px solid #edf1f5; }
+.ath-rt-detail:last-child { border-bottom: 0; }
+.ath-rt-detail > strong { font-size: 14px; }
+.ath-rt-detail p { color: #718095; font-size: 13px; }
+.ath-rt-detail-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.ath-rt-detail-tags span { background: #f0f4f8; border-radius: 8px; color: #34465a; padding: 7px 10px; font-size: 12px; }
+.ath-rt-success, .ath-rt-error { margin: 17px 0; padding: 14px 16px; border-radius: 10px; font-size: 13px; }
+.ath-rt-success { background: #edf8e9; color: #2e7136; }
+.ath-rt-error { background: #fff0ee; color: #a92c23; }
+@media (max-width: 850px) {
+  .ath-rt-heading, .ath-rt-add, .ath-rt-card-header { align-items: stretch; flex-direction: column; }
+  .ath-rt-add-controls { max-width: none; }
+  .ath-rt-numbers { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 550px) {
+  .ath-rt-stats, .ath-rt-form-grid { grid-template-columns: 1fr; }
+  .ath-rt-panel, .ath-rt-card { padding: 18px; }
+  .ath-rt-add-controls { flex-direction: column; }
+  .ath-rt-actions { flex-direction: column; }
+  .ath-rt-actions button { width: 100%; }
+}
+
+
+/* Asignación individual de rutinas */
+.ath-rt-card-buttons { display: flex; align-items: center; flex-wrap: wrap; justify-content: flex-end; gap: 10px; }
+.ath-rt-assign { margin-top: 22px; padding: 22px; background: #f8fafc; border: 1px solid #e2e9f0; border-radius: 14px; }
+.ath-rt-assign h5 { margin: 0 0 7px; font-size: 16px; color: #172638; }
+.ath-rt-assign-loading { margin-top: 18px !important; }
+.ath-rt-assign-form { display: flex; align-items: flex-end; gap: 12px; margin-top: 20px; }
+.ath-rt-assign-field { flex: 1; }
+.ath-rt-assign-field select { width: 100%; min-width: 0; padding: 12px 13px; border: 1px solid #d9e1ea; border-radius: 10px; background: #fff; color: #172638; font: inherit; font-weight: 400; outline: none; }
+.ath-rt-assign-field select:focus { border-color: #80aa43; }
+.ath-rt-assign-field select:disabled { opacity: .65; }
+.ath-rt-assign-note { color: #7b899a; font-size: 13px; line-height: 1.6; padding: 14px 16px; background: #fff; border: 1px solid #e2e9f0; border-radius: 10px; margin-top: 18px; }
+.ath-rt-assigned { margin-top: 22px; padding-top: 17px; border-top: 1px solid #e2e9f0; }
+.ath-rt-assigned h6 { margin: 0 0 12px; color: #34465a; font-size: 13px; }
+.ath-rt-assigned ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.ath-rt-assigned li { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 13px; background: #fff; border: 1px solid #e2e9f0; border-radius: 10px; font-size: 13px; }
+.ath-rt-assigned-status { padding: 5px 9px; border-radius: 7px; background: #e6f4d4; color: #456d28; font-size: 11px; font-weight: 800; }
+@media (max-width: 750px) {
+  .ath-rt-card-buttons { justify-content: flex-start; }
+  .ath-rt-assign-form { flex-direction: column; align-items: stretch; }
+}
+@media (max-width: 550px) {
+  .ath-rt-assign { padding: 16px; }
+  .ath-rt-card-buttons { flex-direction: column; align-items: stretch; }
+}
+
+
+/* Asignación a equipos: conserva los estilos del módulo individual. */
+.ath-rt-assign-team { border-color: #dce9c9; background: #f9fbf6; }
+.ath-rt-team-all-assigned { margin-top: 14px !important; }
+
+
+/* Edición, archivo y eliminación segura de rutinas. */
+.ath-rt-danger {
+  border: 1px solid #f0c8c2;
+  background: #fff0ee;
+  color: #ad2e25;
+  border-radius: 11px;
+  padding: 12px 18px;
+  font-size: 13px;
+  font-weight: 750;
+  font-family: inherit;
+  cursor: pointer;
+}
+.ath-rt-danger:hover:not(:disabled) { background: #ffe0dc; }
+.ath-rt-danger:disabled { opacity: .55; cursor: not-allowed; }
+.ath-rt-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  background: rgba(11, 23, 38, .65);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.ath-rt-modal {
+  width: 100%;
+  max-width: 530px;
+  max-height: min(90vh, 750px);
+  overflow-y: auto;
+  border-radius: 20px;
+  padding: 28px;
+  background: #fff;
+  box-shadow: 0 25px 85px rgba(8, 20, 37, .22);
+  color: #172638;
+}
+.ath-rt-modal-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  background: #fff0ee;
+  color: #b42318;
+  font-weight: 900;
+  font-size: 24px;
+  margin-bottom: 14px;
+}
+.ath-rt-modal h3 { font-size: 21px; margin: 0 0 13px; }
+.ath-rt-modal p { font-size: 14px; line-height: 1.6; }
+.ath-rt-modal-count { color: #536579; }
+.ath-rt-modal-warning {
+  padding: 14px 16px;
+  border: 1px solid #f3ded4;
+  border-radius: 12px;
+  background: #fff8f3;
+  color: #6b4a39;
+}
+.ath-rt-modal-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 23px;
+}
+@media (max-width: 550px) {
+  .ath-rt-modal { padding: 20px; }
+  .ath-rt-modal-actions { flex-direction: column; }
+  .ath-rt-modal-actions button { width: 100%; }
+}

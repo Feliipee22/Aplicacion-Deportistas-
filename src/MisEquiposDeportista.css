@@ -1,0 +1,66 @@
+.ath-md { max-width: 1240px; color: #172133; }
+.ath-md button, .ath-md input { font: inherit; }
+.ath-md-intro { display: flex; justify-content: space-between; align-items: center; gap: 20px; margin-bottom: 22px; }
+.ath-md-eyebrow { color: #67813e; font-size: 11px; font-weight: 800; letter-spacing: 1.6px; }
+.ath-md-intro h2 { font-size: clamp(24px, 3vw, 30px); margin: 9px 0; letter-spacing: -.6px; }
+.ath-md-intro p { color: #738195; margin: 0; font-size: 14px; line-height: 1.5; max-width: 610px; }
+.ath-md-refresh { background: #c5f277; color: #172638; border: 1px solid transparent; border-radius: 11px; padding: 11px 16px; font-size: 13px; font-weight: 700; cursor: pointer; white-space: nowrap; }
+.ath-md-refresh:hover:not(:disabled) { background: #b2e55e; }
+.ath-md-refresh:disabled { opacity: .55; cursor: not-allowed; }
+.ath-md-error { padding: 12px 15px; border-radius: 11px; margin-bottom: 15px; font-size: 13px; line-height: 1.5; background: #fff0ef; color: #9e2c2c; border: 1px solid #f3cfcb; }
+.ath-md-summary { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-bottom: 22px; }
+.ath-md-summary > div { background: white; border: 1px solid #e4e9ef; border-radius: 16px; padding: 17px 21px; display: flex; flex-direction: column; gap: 8px; }
+.ath-md-summary span { color: #788699; font-size: 12px; }
+.ath-md-summary strong { color: #172638; font-size: 26px; letter-spacing: -.5px; }
+.ath-md-layout { display: grid; grid-template-columns: minmax(245px, .8fr) minmax(0, 1.5fr); gap: 18px; align-items: start; }
+.ath-md-panel { background: white; border: 1px solid #e2e8ef; border-radius: 18px; padding: 22px; min-width: 0; }
+.ath-md-panel-heading { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+.ath-md-panel-heading h3 { font-size: 17px; margin: 0; }
+.ath-md-panel-heading span { font-size: 12px; font-weight: 800; background: #eff3f7; padding: 5px 9px; border-radius: 8px; }
+.ath-md-search { display: block; margin-bottom: 14px; }
+.ath-md-search input { width: 100%; box-sizing: border-box; border: 1px solid #dce4ec; border-radius: 10px; background: white; color: #172638; padding: 12px 13px; outline: none; font-size: 13px; }
+.ath-md-search input:focus { border-color: #9ecb5e; box-shadow: 0 0 0 3px rgba(197,242,119,.25); }
+.ath-md-team-list { display: grid; gap: 8px; max-height: 520px; overflow-y: auto; }
+.ath-md-team { width: 100%; border: 1px solid transparent; border-radius: 12px; background: white; padding: 12px; display: flex; align-items: center; gap: 11px; cursor: pointer; text-align: left; }
+.ath-md-team:hover { background: #f5f8f0; }
+.ath-md-team.selected { background: #f1f8e6; border-color: #d5e9b9; }
+.ath-md-team-avatar, .ath-md-person-avatar { flex-shrink: 0; display: grid; place-items: center; background: #e7eff7; color: #2f506b; font-weight: 800; border-radius: 11px; width: 39px; height: 39px; }
+.ath-md-team.selected .ath-md-team-avatar { background: #c5f277; color: #20361a; }
+.ath-md-team-info { flex: 1; min-width: 0; }
+.ath-md-team-info strong { display: block; color: #223249; font-size: 13px; overflow-wrap: anywhere; }
+.ath-md-team-info small { display: block; color: #7a8796; font-size: 11px; margin-top: 5px; }
+.ath-md-team-arrow { font-size: 24px; color: #8391a0; }
+.ath-md-detail-header h3 { margin: 13px 0 8px; font-size: 22px; overflow-wrap: anywhere; }
+.ath-md-detail-header p { margin: 0; color: #7a8798; line-height: 1.5; font-size: 13px; }
+.ath-md-status { display: inline-block; border-radius: 7px; padding: 6px 9px; font-size: 10px; letter-spacing: .6px; font-weight: 800; }
+.ath-md-status.active { background: #edf8de; color: #4c702d; }
+.ath-md-status.inactive { background: #f1f3f5; color: #6d7885; }
+.ath-md-notice { background: #fff7e7; color: #8a5c19; border: 1px solid #f0dfbb; padding: 12px 14px; border-radius: 11px; margin-top: 18px; font-size: 12px; line-height: 1.5; }
+.ath-md-counts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin: 23px 0; }
+.ath-md-counts > div { background: #f6f8fb; border-radius: 12px; padding: 15px 18px; display: flex; flex-direction: column; gap: 6px; }
+.ath-md-counts strong { font-size: 23px; }
+.ath-md-counts span { font-size: 12px; color: #768495; }
+.ath-md-section-heading { border-bottom: 1px solid #e9edf2; margin: 23px 0 8px; padding-bottom: 11px; }
+.ath-md-section-heading h4 { font-size: 15px; margin: 0; }
+.ath-md-members { display: grid; }
+.ath-md-member { display: flex; align-items: center; gap: 11px; padding: 11px 2px; border-bottom: 1px solid #eff2f5; }
+.ath-md-person-avatar { width: 33px; height: 33px; border-radius: 9px; font-size: 12px; }
+.ath-md-person-info { flex: 1; min-width: 0; }
+.ath-md-person-info strong { display: block; font-size: 13px; font-weight: 600; overflow-wrap: anywhere; }
+.ath-md-person-info small { display: block; color: #8b6870; font-size: 11px; margin-top: 3px; }
+.ath-md-self { font-size: 11px; font-weight: 700; color: #4c702d; background: #edf8de; border-radius: 7px; padding: 5px 8px; }
+.ath-md-muted { color: #8591a1; font-size: 13px; line-height: 1.5; }
+.ath-md-footer-note { border-top: 1px solid #e9edf2; padding-top: 16px; margin: 26px 0 0; color: #8290a0; font-size: 12px; line-height: 1.5; }
+.ath-md-empty { background: white; border: 1px solid #e2e8ef; border-radius: 17px; padding: 35px; color: #718094; line-height: 1.5; }
+.ath-md-empty h3 { color: #172638; font-size: 18px; margin: 0 0 8px; }
+.ath-md-empty p { margin: 0; font-size: 13px; }
+.ath-md-sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+@media (max-width: 1000px) { .ath-md-layout { grid-template-columns: 1fr; } .ath-md-team-list { max-height: 320px; } }
+@media (max-width: 650px) { .ath-md-intro { flex-direction: column; align-items: stretch; } .ath-md-summary { grid-template-columns: 1fr 1fr; } .ath-md-panel { padding: 17px; } }
+@media (max-width: 420px) { .ath-md-summary { grid-template-columns: 1fr; } }
+
+/* Vista inicial: no se selecciona ningún equipo automáticamente. */
+.ath-md-placeholder { min-height: 310px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 10px; }
+.ath-md-placeholder-icon { display: grid; place-items: center; width: 56px; height: 56px; border-radius: 16px; background: #eef7df; color: #496d27; font-size: 24px; font-weight: 800; margin-bottom: 6px; }
+.ath-md-placeholder h3 { margin: 0; font-size: 19px; color: #172638; }
+.ath-md-placeholder p { margin: 0; max-width: 330px; font-size: 13px; line-height: 1.6; color: #7a8798; }

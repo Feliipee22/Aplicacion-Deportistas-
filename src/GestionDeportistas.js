@@ -12,14 +12,29 @@ export default function GestionDeportistas() {
     obtenerDeportistas();
   }, []);
 
-  const obtenerDeportistas = async () => {
-    const { data, error } = await supabase.from('usuarios').select('*'); 
-    if (error) {
-      console.error("Error al obtener los datos:", error);
-    } else {
-      setDeportistas(data);
-    }
-  };
+  
+const obtenerDeportistas = async () => {
+  const { data: authData } = await supabase.auth.getUser();
+
+  const { data, error, status } = await supabase
+    .from('usuarios')
+    .select('*');
+
+  console.log('DIAGNÓSTICO ATHLETIX:', {
+    sesionActiva: !!authData?.user,
+    estadoConsulta: status,
+    cantidadUsuarios: data?.length ?? 0,
+    errorConsulta: error?.message ?? 'Ninguno'
+  });
+
+  if (error) {
+    console.error('Error al obtener los datos:', error);
+    setDeportistas([]);
+  } else {
+    setDeportistas(data ?? []);
+  }
+};
+
 
   const agregarDeportista = async (e) => {
     e.preventDefault();
