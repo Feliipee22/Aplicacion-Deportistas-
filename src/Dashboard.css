@@ -95,9 +95,10 @@
 
 .ath-nav-symbol {
   width: 24px;
-  font-size: 12px;
-  font-weight: 800;
-  text-align: center;
+  height: 24px;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
 }
 
 .ath-sidebar-bottom {
@@ -260,7 +261,7 @@
   box-shadow: 0 14px 32px rgba(17, 28, 43, 0.08);
 }
 
-.ath-card-number {
+.ath-card-icon {
   background: #edf5df;
   color: #45672a;
   width: 40px;
@@ -268,8 +269,6 @@
   border-radius: 12px;
   display: grid;
   place-items: center;
-  font-size: 12px;
-  font-weight: 800;
 }
 
 .ath-card h3 {
