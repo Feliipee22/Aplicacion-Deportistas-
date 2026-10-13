@@ -1,0 +1,44 @@
+.ath-auth-page { min-height: 100vh; display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(390px, 0.95fr); font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f4f7fa; color: #18253a; }
+.ath-auth-intro { position: relative; display: flex; flex-direction: column; justify-content: space-between; padding: clamp(28px, 5vw, 72px); overflow: hidden; color: #fff; background: radial-gradient(circle at 90% 80%, #29496a 0%, transparent 45%), linear-gradient(145deg, #111d31, #182f4b); }
+.ath-auth-intro::after { content: ''; position: absolute; width: 470px; height: 470px; right: -210px; bottom: -210px; border: 1px solid rgba(203, 246, 111, .35); border-radius: 50%; box-shadow: 0 0 0 70px rgba(203,246,111,.035), 0 0 0 145px rgba(203,246,111,.03); pointer-events: none; }
+.ath-auth-brand { display: flex; align-items: center; gap: 12px; font-weight: 900; font-size: 23px; letter-spacing: .07em; }
+.ath-auth-mark { display: grid; place-items: center; width: 42px; height: 42px; border-radius: 13px; color: #14251d; background: #c7f36b; font-size: 27px; font-style: italic; }
+.ath-auth-intro-copy { max-width: 520px; position: relative; z-index: 1; }
+.ath-auth-eyebrow { color: #c7f36b; font-size: 12px; font-weight: 800; letter-spacing: .22em; }
+.ath-auth-intro h1 { font-size: clamp(40px, 5vw, 72px); letter-spacing: -.05em; line-height: 1.04; margin: 20px 0 24px; }
+.ath-auth-intro p { color: #c9d6e4; font-size: 18px; line-height: 1.7; max-width: 390px; }
+.ath-auth-accent { width: 65px; height: 5px; border-radius: 4px; margin-top: 35px; background: #c7f36b; }
+.ath-auth-intro-footer { color: #a6b9cb; font-size: 13px; }
+.ath-auth-panel { display: grid; place-items: center; padding: 36px 28px; }
+.ath-auth-card { width: min(100%, 440px); }
+.ath-auth-mobile-brand { display: none; }
+.ath-auth-card h2 { margin: 0 0 10px; font-size: clamp(27px, 3vw, 36px); letter-spacing: -.04em; }
+.ath-auth-subtitle { color: #6a788b; margin: 0 0 30px; }
+.ath-auth-tabs { display: grid; grid-template-columns: 1fr 1fr; padding: 5px; background: #e8edf3; border-radius: 14px; margin-bottom: 30px; }
+.ath-auth-tabs button { border: 0; border-radius: 11px; padding: 13px 8px; font: inherit; font-weight: 700; color: #6d798b; background: transparent; cursor: pointer; }
+.ath-auth-tabs button.active { color: #17283e; background: #fff; box-shadow: 0 3px 14px rgba(24, 42, 66, .08); }
+.ath-auth-form { display: flex; flex-direction: column; gap: 11px; }
+.ath-auth-form label { font-size: 14px; font-weight: 700; margin-top: 5px; }
+.ath-auth-form input { width: 100%; box-sizing: border-box; height: 51px; border: 1px solid #d4dce5; border-radius: 12px; background: #fff; padding: 0 15px; font: inherit; color: #1a2a40; outline: none; }
+.ath-auth-form input:focus { border-color: #607f9b; box-shadow: 0 0 0 3px rgba(96,127,155,.14); }
+.ath-auth-password-wrap { position: relative; }
+.ath-auth-password-wrap input { padding-right: 85px; }
+.ath-auth-show-password { position: absolute; right: 11px; top: 50%; transform: translateY(-50%); border: 0; background: transparent; color: #38536c; font-weight: 700; cursor: pointer; }
+.ath-auth-primary { width: 100%; min-height: 52px; margin-top: 18px; border: 0; border-radius: 12px; background: #c7f36b; color: #172719; font: inherit; font-weight: 800; cursor: pointer; transition: background .15s, transform .15s; }
+.ath-auth-primary:hover:not(:disabled) { background: #b7e75c; transform: translateY(-1px); }
+.ath-auth-primary:disabled { opacity: .7; cursor: wait; }
+.ath-auth-error { padding: 12px; border-radius: 10px; background: #ffeded; color: #a32323; font-size: 14px; }
+.ath-auth-registration-info { padding: 8px 0 0; }
+.ath-auth-registration-icon { display: grid; place-items: center; width: 48px; height: 48px; border-radius: 15px; background: #e9f6d3; color: #557f20; font-size: 28px; }
+.ath-auth-registration-info h3 { font-size: 21px; margin: 18px 0 8px; }
+.ath-auth-registration-info p { color: #6a788b; line-height: 1.65; }
+.ath-auth-bottom-note { text-align: center; color: #8390a1; font-size: 12px; margin-top: 30px; }
+@media (max-width: 800px) { .ath-auth-page { grid-template-columns: 1fr; } .ath-auth-intro { display: none; } .ath-auth-panel { padding: 28px 20px; } .ath-auth-mobile-brand { display: block; margin-bottom: 36px; color: #193047; font-size: 24px; font-weight: 900; letter-spacing: .08em; } }
+/* Registro de deportistas */
+.ath-auth-register-hint { margin: 0 0 7px; font-size: 13px; line-height: 1.55; color: #607287; }
+.ath-auth-captcha { min-height: 67px; margin-top: 10px; }
+.ath-auth-captcha > div { max-width: 100%; }
+.ath-auth-captcha .ath-auth-error { margin-top: 9px; }
+.ath-auth-panel { overflow-y: auto; }
+.ath-auth-card { padding: 18px 0; }
+@media (max-width: 430px) { .ath-auth-panel { padding: 20px 14px; } }
