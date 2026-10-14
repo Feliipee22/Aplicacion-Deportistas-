@@ -244,7 +244,7 @@
 /* Banner completo, sin recortes */
 .ath-auth-banner-stage--welcome,
 .ath-auth-panel--register .ath-auth-banner-stage--welcome {
-  width: min(100%, 350px);
+  width: min(100%, 350npmpx);
   margin: 0 auto 12px;
   height: auto;
   overflow: visible;
