@@ -1,6 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { supabase } from './supabase';
 import './Login.css';
+import logoAthletix from './assets/athletix-logo.jpg';
+import bannerAthletix from './assets/athletix-banner.jpg';
 
 const SITE_KEY = process.env.REACT_APP_TURNSTILE_SITE_KEY;
 
@@ -177,19 +179,23 @@ export default function Login() {
   return (
     <main className="ath-auth-page">
       <section className="ath-auth-intro" aria-label="Bienvenida a Athletix">
-        <div className="ath-auth-brand"><span className="ath-auth-mark">A</span> ATHLETIX</div>
+        <div className="ath-auth-brand"><img className="ath-auth-logo" src={logoAthletix} alt="Logo de Athletix" /> <span>ATHLETIX</span></div>
         <div className="ath-auth-intro-copy">
           <span className="ath-auth-eyebrow">TU ESPACIO DEPORTIVO</span>
           <h1>Tu progreso comienza aquí.</h1>
           <p>Entrenamientos, rutinas y objetivos en un mismo lugar.</p>
           <div className="ath-auth-accent" />
+
         </div>
         <span className="ath-auth-intro-footer">Entrena. Avanza. Supera tus límites.</span>
       </section>
 
-      <section className="ath-auth-panel">
+      <section className={`ath-auth-panel ${vista === 'registro' ? 'ath-auth-panel--register' : ''}`}>
         <div className="ath-auth-card">
-          <div className="ath-auth-mobile-brand">ATHLETIX</div>
+          <div className="ath-auth-mobile-brand"><img className="ath-auth-logo" src={logoAthletix} alt="Logo de Athletix" /> <span>ATHLETIX</span></div>
+          <div className="ath-auth-banner-stage ath-auth-banner-stage--welcome">
+            <img className="ath-auth-banner" src={bannerAthletix} alt="Athletix: deportes, entrenamiento y actividad física" />
+          </div>
           <h2>Bienvenido a Athletix</h2>
           <p className="ath-auth-subtitle">Accede a tu espacio deportivo.</p>
           <div className="ath-auth-tabs" role="tablist" aria-label="Acceso a Athletix">

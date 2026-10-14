@@ -12,6 +12,7 @@ import CalendarioDeportivo from './CalendarioDeportivo';
 import AsistenciaEntrenador from './AsistenciaEntrenador';
 import MiAsistencia from './MiAsistencia';
 import Avisos from './Avisos';
+import logoAthletix from "./assets/athletix-logo.jpg";
 
 
 // Iconos del panel: no requieren librerías adicionales.
@@ -156,7 +157,9 @@ export default function Dashboard({ perfil, onCerrarSesion }) {
     <div className="ath-shell">
       <aside className="ath-sidebar">
         <div className="ath-brand">
-          <div className="ath-brand-icon">A</div>
+          <div className="ath-brand-icon">
+  <img src={logoAthletix} alt="Logo de Athletix" />
+</div>
           <div>
             <div className="ath-brand-name">ATHLETIX</div>
             <div className="ath-brand-subtitle">

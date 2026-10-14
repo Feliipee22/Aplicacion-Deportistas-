@@ -1301,3 +1301,15 @@
     width: 100%;
   }
 }
+
+.ath-brand-icon {
+  background: transparent;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.ath-brand-icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
