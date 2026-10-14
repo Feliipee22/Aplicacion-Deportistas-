@@ -274,7 +274,7 @@ export default function Avisos({ perfil }) {
       <header className="ath-av-header">
         <div>
           <span className="ath-av-eyebrow">COMUNICACIONES DEL CLUB</span>
-          <h2>Avisos</h2>
+          
           <p>{administrador
             ? 'Publica comunicados para todo el club o para equipos específicos.'
             : entrenador

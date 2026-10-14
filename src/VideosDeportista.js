@@ -59,7 +59,7 @@ export default function VideosDeportista({ usuarioId }) {
   const visibles = videos.filter(v => `${v.nombre} ${v.categoria || ''} ${v.rutinas.join(' ')}`.toLowerCase().includes(busqueda.toLowerCase()));
   return (
     <section className="ath-exlib">
-      <div className="ath-exlib-heading"><div><h2>Videos de mis ejercicios</h2><p>Reproduce los videos de tus rutinas asignadas. Esta sección es solo de consulta.</p></div></div>
+      <div className="ath-exlib-heading"><div><p>Reproduce los videos de tus rutinas asignadas. Esta sección es solo de consulta.</p></div></div>
       <div className="ath-exlib-panel">
         {error && <div className="ath-exlib-error" role="alert">{error}</div>}
         <input type="search" className="ath-exlib-search" placeholder="Buscar entre mis ejercicios" value={busqueda} onChange={e => setBusqueda(e.target.value)} />

@@ -169,7 +169,7 @@ export default function GestionUsuarios() {
   return (
     <section className="ath-users">
       <div className="ath-section-heading">
-        <h2>Gestión de usuarios</h2>
+        
         <p>
           Administra las cuentas registradas en tu organización.
         </p>

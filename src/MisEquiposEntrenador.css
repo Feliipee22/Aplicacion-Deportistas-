@@ -64,3 +64,17 @@
 .ath-me-placeholder-icon { display: grid; place-items: center; width: 56px; height: 56px; border-radius: 16px; background: #eef7df; color: #496d27; font-size: 24px; font-weight: 800; margin-bottom: 6px; }
 .ath-me-placeholder h3 { margin: 0; font-size: 19px; color: #172638; }
 .ath-me-placeholder p { margin: 0; max-width: 330px; font-size: 13px; line-height: 1.6; color: #7a8798; }
+
+/* ATHLETIX | Equipos del entrenador */
+@media (max-width: 680px) {
+  .ath-me { min-width: 0; }
+  .ath-me-layout { grid-template-columns: minmax(0,1fr); }
+  .ath-me-intro, .ath-me-detail-header { gap: 12px; }
+  .ath-me-panel { min-width: 0; padding: 16px; }
+  .ath-me-team, .ath-me-member { min-width: 0; overflow-wrap: anywhere; }
+  .ath-me-team-info, .ath-me-person-info { min-width: 0; }
+  .ath-me-summary, .ath-me-counts { gap: 9px; }
+  .ath-me-summary > div, .ath-me-counts > div { padding: 12px; min-width: 0; }
+  .ath-me :is(input,select) { max-width: 100%; min-width: 0; font-size: 16px; }
+  .ath-me :is(button,select) { min-height: 42px; }
+}

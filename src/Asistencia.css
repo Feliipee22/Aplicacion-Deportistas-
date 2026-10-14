@@ -99,3 +99,21 @@
 @media (max-width: 1200px) { .ath-as-layout { grid-template-columns: minmax(255px,.8fr) minmax(0,1.5fr); gap: 12px; } .ath-as-person { grid-template-columns: 1fr 1fr; } .ath-as-person-name { grid-column: 1/-1; } }
 @media (max-width: 920px) { .ath-as-layout { grid-template-columns: 1fr; } .ath-as-events { max-height: 350px; } .ath-as-history-header { flex-direction: column; align-items: stretch; } .ath-as-history-filters { justify-content: flex-start; } }
 @media (max-width: 680px) { .ath-as-header { flex-direction: column; align-items: stretch; } .ath-as-stats, .ath-as-my-stats { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 9px; } .ath-as-stats > div { padding: 13px; } .ath-as-stats strong { font-size: 23px; } .ath-as-list, .ath-as-detail, .ath-as-history { padding: 16px; } .ath-as-roster-heading { flex-direction: column; align-items: start; } .ath-as-person { grid-template-columns: 1fr; } .ath-as-person-name { grid-column: auto; } .ath-as-action-buttons { justify-content: stretch; } .ath-as-action-buttons button { flex: 1 1 100%; } .ath-as-history-filters { flex-wrap: wrap; } .ath-as-history-filters .ath-as-field { flex: 1 1 145px; } .ath-as-history-item { flex-wrap: wrap; } }
+
+/* ATHLETIX | Asistencia: registro y consulta en pantallas táctiles */
+@media (max-width: 680px) {
+  .ath-as { min-width: 0; }
+  .ath-as-layout { grid-template-columns: minmax(0,1fr); }
+  .ath-as-panel, .ath-as-list, .ath-as-detail, .ath-as-history { min-width: 0; }
+  .ath-as-header, .ath-as-roster-heading, .ath-as-history-header { gap: 12px; }
+  .ath-as-history-filters { width: 100%; flex-wrap: wrap; }
+  .ath-as-history-filters .ath-as-field { flex: 1 1 130px; min-width: 0; }
+  .ath-as-person, .ath-as-history-item { min-width: 0; overflow-wrap: anywhere; }
+  .ath-as-action-buttons { display: grid; grid-template-columns: 1fr; gap: 9px; }
+  .ath-as-action-buttons button { width: 100%; min-height: 44px; }
+  .ath-as :is(input,select,textarea) { width: 100%; max-width: 100%; min-width: 0; font-size: 16px; }
+  .ath-as :is(button,select) { min-height: 42px; }
+}
+@media (max-width: 370px) {
+  .ath-as-stats, .ath-as-my-stats { grid-template-columns: 1fr; }
+}

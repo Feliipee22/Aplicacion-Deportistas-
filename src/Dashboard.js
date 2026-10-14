@@ -1,11 +1,12 @@
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import './Dashboard.css';
 import MisRutinas from './MisRutinas';
 import GestionUsuarios from './GestionUsuarios';
 import EjerciciosEntrenador from './EjerciciosEntrenador';
 import GestionVideosAdmin from './GestionVideosAdmin';
 import VideosDeportista from './VideosDeportista';
+import MiAlimentacion from './MiAlimentacion';
 import RutinasEntrenador from './RutinasEntrenador';
 import GestionEquipos from './GestionEquipos';
 import MisEquiposEntrenador from './MisEquiposEntrenador';
@@ -14,8 +15,8 @@ import CalendarioDeportivo from './CalendarioDeportivo';
 import AsistenciaEntrenador from './AsistenciaEntrenador';
 import MiAsistencia from './MiAsistencia';
 import Avisos from './Avisos';
+import ReportesAdmin from './ReportesAdmin';
 import logoAthletix from "./assets/athletix-logo.jpg";
-
 
 // Iconos del panel: no requieren librerías adicionales.
 function IconoModulo({ tipo }) {
@@ -82,6 +83,13 @@ function IconoModulo({ tipo }) {
         <path d="M9 4.5V3h6v1.5M9 10h6M9 14h6M9 18h4" />
       </>
     ),
+    alimentacion: (
+      <>
+        <path d="M4 12a8 8 0 0 0 16 0" />
+        <path d="M4 12h16M8 18l-1 3M16 18l1 3" />
+        <path d="M12 4v5M9 6l3 3 3-3" />
+      </>
+    ),
     asistencia: (
       <>
         <circle cx="9" cy="8" r="3" />
@@ -130,6 +138,7 @@ const configuracion = {
       { id: 'equipos', nombre: 'Mis equipos', descripcion: 'Consultar los equipos asignados.' },
       { id: 'ejercicios', nombre: 'Ejercicios y videos', descripcion: 'Crear ejercicios y subir videos demostrativos.' },
       { id: 'rutinas', nombre: 'Rutinas', descripcion: 'Preparar planes de entrenamiento.' },
+      { id: 'alimentacion', nombre: 'Mi alimentación', descripcion: 'Registrar comidas y consultar sus macronutrientes.' },
       { id: 'actividades', nombre: 'Calendario', descripcion: 'Organizar sesiones y actividades.' },
       { id: 'asistencia', nombre: 'Asistencia', descripcion: 'Registrar participación.' },
       { id: 'avisos', nombre: 'Avisos', descripcion: 'Comunicar novedades.' },
@@ -141,6 +150,7 @@ const configuracion = {
     modulos: [
       { id: 'rutinas', nombre: 'Mis rutinas', descripcion: 'Consultar tus entrenamientos.' },
       { id: 'videos', nombre: 'Videos de ejercicios', descripcion: 'Ver los videos de los ejercicios de tus rutinas.' },
+      { id: 'alimentacion', nombre: 'Mi alimentación', descripcion: 'Registrar comidas y consultar sus macronutrientes.' },
       { id: 'equipos', nombre: 'Mis equipos', descripcion: 'Consultar tus equipos, entrenadores y compañeros.' },
       { id: 'actividades', nombre: 'Calendario', descripcion: 'Revisar próximas actividades.' },
       { id: 'asistencia', nombre: 'Mi asistencia', descripcion: 'Consultar tu participación.' },
@@ -151,6 +161,21 @@ const configuracion = {
 
 export default function Dashboard({ perfil, onCerrarSesion }) {
   const [seccion, setSeccion] = useState('inicio');
+  const [menuMovilAbierto, setMenuMovilAbierto] = useState(false);
+
+  const navegar = (destino) => {
+    setSeccion(destino);
+    setMenuMovilAbierto(false);
+  };
+
+  useEffect(() => {
+    if (!menuMovilAbierto) return undefined;
+    const cerrarConEscape = (evento) => {
+      if (evento.key === 'Escape') setMenuMovilAbierto(false);
+    };
+    document.addEventListener('keydown', cerrarConEscape);
+    return () => document.removeEventListener('keydown', cerrarConEscape);
+  }, [menuMovilAbierto]);
 
   const config = configuracion[perfil.rol_id];
 
@@ -165,7 +190,32 @@ export default function Dashboard({ perfil, onCerrarSesion }) {
 
   return (
     <div className="ath-shell">
-      <aside className="ath-sidebar">
+      <div className="ath-mobile-bar">
+        <div className="ath-mobile-brand">
+          <img src={logoAthletix} alt="" />
+          <strong>ATHLETIX</strong>
+        </div>
+        <button
+          type="button"
+          className="ath-menu-toggle"
+          aria-label={menuMovilAbierto ? 'Cerrar menú' : 'Abrir menú'}
+          aria-expanded={menuMovilAbierto}
+          aria-controls="ath-navigation-sidebar"
+          onClick={() => setMenuMovilAbierto((abierto) => !abierto)}
+        >
+          {menuMovilAbierto ? '✕ Cerrar' : '☰ Menú'}
+        </button>
+      </div>
+      {menuMovilAbierto && (
+        <button
+          type="button"
+          className="ath-mobile-backdrop"
+          aria-label="Cerrar menú de navegación"
+          onClick={() => setMenuMovilAbierto(false)}
+        />
+      )}
+      <aside id="ath-navigation-sidebar" className={`ath-sidebar ${menuMovilAbierto ? 'ath-sidebar--open' : ''}`}>
+
         <div className="ath-brand">
           <div className="ath-brand-icon">
   <img src={logoAthletix} alt="Logo de Athletix" />
@@ -185,7 +235,7 @@ export default function Dashboard({ perfil, onCerrarSesion }) {
             className={`ath-nav-button ${
               seccion === 'inicio' ? 'active' : ''
             }`}
-            onClick={() => setSeccion('inicio')}
+            onClick={() => navegar('inicio')}
           >
             <span className="ath-nav-symbol"><IconoModulo tipo="inicio" /></span>
             Inicio
@@ -197,7 +247,7 @@ export default function Dashboard({ perfil, onCerrarSesion }) {
               className={`ath-nav-button ${
                 seccion === modulo.id ? 'active' : ''
               }`}
-              onClick={() => setSeccion(modulo.id)}
+              onClick={() => navegar(modulo.id)}
             >
               <span className="ath-nav-symbol">
                 <IconoModulo tipo={modulo.id} />
@@ -274,7 +324,7 @@ export default function Dashboard({ perfil, onCerrarSesion }) {
                   <button
                     className="ath-card"
                     key={modulo.id}
-                    onClick={() => setSeccion(modulo.id)}
+                    onClick={() => navegar(modulo.id)}
                   >
                     <div className="ath-card-icon">
                       <IconoModulo tipo={modulo.id} />
@@ -316,6 +366,10 @@ export default function Dashboard({ perfil, onCerrarSesion }) {
   <AsistenciaEntrenador usuarioId={perfil.id} />
 ) : seccion === 'asistencia' && perfil.rol_id === 3 ? (
   <MiAsistencia usuarioId={perfil.id} />
+) : seccion === 'alimentacion' && [2, 3].includes(perfil.rol_id) ? (
+   <MiAlimentacion usuarioId={perfil.id} />
+) : seccion === 'reportes' && perfil.rol_id === 1 ? (
+  <ReportesAdmin perfil={perfil} />
 ) : seccion === 'avisos' && [1, 2, 3].includes(perfil.rol_id) ? (
   <Avisos perfil={perfil} />
 ) : (
@@ -325,7 +379,6 @@ export default function Dashboard({ perfil, onCerrarSesion }) {
               {moduloActual?.nombre.charAt(0)}
             </div>
 
-            <h2>{moduloActual?.nombre}</h2>
 
             <p>{moduloActual?.descripcion}</p>
 
@@ -337,7 +390,7 @@ export default function Dashboard({ perfil, onCerrarSesion }) {
 
             <button
               className="ath-back-button"
-              onClick={() => setSeccion('inicio')}
+              onClick={() => navegar('inicio')}
             >
               ← Volver al inicio
             </button>

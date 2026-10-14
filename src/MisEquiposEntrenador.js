@@ -151,8 +151,8 @@ export default function MisEquiposEntrenador({ usuarioId }) {
     <section className="ath-me">
       <div className="ath-me-intro">
         <div>
-          <span className="ath-me-eyebrow">ESPACIO DEL ENTRENADOR</span>
-          <h2>Mis equipos</h2>
+          
+          
           <p>Consulta tus equipos asignados y conoce a los deportistas y entrenadores que los integran.</p>
         </div>
         <button

@@ -174,3 +174,30 @@
   .ath-rt-modal-actions { flex-direction: column; }
   .ath-rt-modal-actions button { width: 100%; }
 }
+
+/* ATHLETIX | Rutinas de entrenador: edición y asignación móvil */
+@media (max-width: 680px) {
+  .ath-rt { min-width: 0; }
+  .ath-rt-heading, .ath-rt-add, .ath-rt-card-header, .ath-rt-exercise-heading {
+    flex-wrap: wrap; align-items: flex-start; gap: 12px;
+  }
+  .ath-rt-panel { padding: 17px; }
+  .ath-rt-card { padding: 16px; min-width: 0; }
+  .ath-rt-form-grid { grid-template-columns: minmax(0,1fr); gap: 13px; }
+  .ath-rt-full { grid-column: 1 / -1; }
+  .ath-rt-stats { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 9px; }
+  .ath-rt-stat { padding: 14px; min-width: 0; }
+  .ath-rt-stat strong { font-size: 25px; }
+  .ath-rt-numbers { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .ath-rt-add-controls, .ath-rt-assign-form, .ath-rt-actions,
+  .ath-rt-card-buttons, .ath-rt-modal-actions { flex-wrap: wrap; max-width: none; width: 100%; }
+  .ath-rt-add-controls > *, .ath-rt-assign-form > * { flex: 1 1 145px; min-width: 0; }
+  .ath-rt-exercise { padding: 14px; }
+  .ath-rt-modal { max-height: calc(100dvh - 24px); overflow-y: auto; }
+  .ath-rt :is(input,select,textarea) { min-width: 0; max-width: 100%; font-size: 16px; }
+  .ath-rt :is(button,select,input) { min-height: 42px; }
+}
+@media (max-width: 390px) {
+  .ath-rt-stats { grid-template-columns: 1fr; }
+  .ath-rt-numbers { gap: 8px; }
+}

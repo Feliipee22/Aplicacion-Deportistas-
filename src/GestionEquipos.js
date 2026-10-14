@@ -241,8 +241,8 @@ export default function GestionEquipos() {
     <section className="ath-ge">
       <div className="ath-ge-intro">
         <div>
-          <span className="ath-ge-eyebrow">ADMINISTRACIÓN DEL CLUB</span>
-          <h2>Gestión de equipos</h2>
+          
+          
           <p>Crea equipos, asigna entrenadores y organiza a tus deportistas.</p>
         </div>
         <button className="ath-ge-button ath-ge-button-primary" type="button" onClick={comenzarCreacion} disabled={ocupado}>

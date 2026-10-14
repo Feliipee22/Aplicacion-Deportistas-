@@ -532,8 +532,8 @@ export default function CalendarioDeportivo({ perfil }) {
     <section className="ath-cal">
       <div className="ath-cal-intro">
         <div>
-          <span className="ath-cal-eyebrow">{administrador ? 'ESPACIO DEL ADMINISTRADOR' : entrenador ? 'ESPACIO DEL ENTRENADOR' : 'ESPACIO DEL DEPORTISTA'}</span>
-          <h2>Calendario deportivo</h2>
+          
+          
           <p>{administrador
             ? 'Organiza las actividades generales y de los equipos del club.'
             : entrenador

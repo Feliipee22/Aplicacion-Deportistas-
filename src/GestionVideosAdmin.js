@@ -93,7 +93,7 @@ export default function GestionVideosAdmin() {
   return (
     <section className="ath-exlib">
       <div className="ath-exlib-heading">
-        <div><h2>Gestión de videos</h2><p>Revisa y administra los videos publicados por entrenadores. No puedes crear ejercicios ni subir archivos.</p></div>
+        <div><p>Revisa y administra los videos publicados por entrenadores. No puedes crear ejercicios ni subir archivos.</p></div>
         <button type="button" className="ath-exlib-secondary" onClick={cargar} disabled={cargando || procesando}>Actualizar</button>
       </div>
       {error && <div className="ath-exlib-error" role="alert">{error}</div>}

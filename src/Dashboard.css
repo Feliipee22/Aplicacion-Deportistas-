@@ -1322,3 +1322,114 @@
 .ath-video-options label { display:flex; align-items:center; gap:7px; cursor:pointer; }
 .ath-video-options input { width:auto; }
 .ath-video-error { color:#b42318; font-size:13px; }
+
+
+/* Navegación móvil: se aplica solo a pantallas pequeñas. */
+.ath-mobile-bar, .ath-mobile-backdrop { display: none; }
+
+@media (max-width: 850px) {
+  .ath-shell { display: block; min-height: 100dvh; }
+  .ath-mobile-bar {
+    display: flex;
+    position: sticky;
+    top: 0;
+    z-index: 110;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    min-height: 64px;
+    padding: 10px 16px;
+    background: #111c2b;
+    color: #fff;
+    box-shadow: 0 2px 14px rgba(17, 28, 43, .15);
+  }
+  .ath-mobile-brand { display: flex; align-items: center; gap: 10px; font-size: 17px; letter-spacing: .7px; }
+  .ath-mobile-brand img { width: 35px; height: 35px; border-radius: 9px; object-fit: cover; }
+  .ath-menu-toggle {
+    border: 1px solid #43556c;
+    background: #1e3045;
+    color: white;
+    border-radius: 10px;
+    min-height: 42px;
+    padding: 8px 13px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .ath-mobile-backdrop {
+    display: block;
+    position: fixed;
+    inset: 64px 0 0;
+    z-index: 111;
+    width: 100%;
+    border: 0;
+    background: rgba(10, 20, 33, .55);
+  }
+  .ath-sidebar {
+    display: none;
+    position: fixed;
+    z-index: 112;
+    top: 64px;
+    bottom: 0;
+    left: 0;
+    width: min(310px, 88vw);
+    padding: 18px 14px 24px;
+    overflow-y: auto;
+    box-shadow: 12px 0 36px rgba(10, 20, 33, .2);
+  }
+  .ath-sidebar--open { display: flex; }
+  .ath-sidebar-label, .ath-sidebar-bottom { display: block; }
+  .ath-navigation { flex-direction: column; overflow-x: visible; padding-bottom: 0; }
+  .ath-nav-button { width: 100%; white-space: normal; padding: 13px 14px; }
+  .ath-main { padding: 22px 16px 38px; }
+  .ath-topbar { align-items: flex-start; gap: 12px; }
+  .ath-topbar h1 { font-size: clamp(22px, 5vw, 29px); overflow-wrap: anywhere; }
+  .ath-logout { flex-shrink: 0; padding: 10px 12px; font-size: 12px; }
+  .ath-cards { grid-template-columns: repeat(auto-fit, minmax(min(100%, 210px), 1fr)); }
+}
+
+@media (max-width: 520px) {
+  .ath-main { padding: 18px 12px 30px; }
+  .ath-topbar { margin-bottom: 18px; }
+  .ath-eyebrow { font-size: 9px; letter-spacing: 1px; }
+  .ath-hero { padding: 24px 20px; border-radius: 16px; }
+  .ath-hero h2 { font-size: 30px; }
+  .ath-section { margin-top: 24px; }
+  .ath-cards { grid-template-columns: 1fr; gap: 12px; }
+  .ath-card { min-height: 0; padding: 19px; }
+  .ath-card h3 { margin-top: 12px; }
+  .ath-card-link { padding-top: 12px; }
+  .ath-module { padding: 22px 18px; }
+}
+
+/* ATHLETIX | Ajustes táctiles y de ancho reducido para todos los roles.
+   Solo presentación: no modifica navegación, datos ni permisos. */
+@media (max-width: 850px) {
+  .ath-shell, .ath-main, .ath-main > *, .ath-section { min-width: 0; }
+  .ath-main { overflow-x: clip; }
+  .ath-main img, .ath-main video, .ath-main iframe { max-width: 100%; }
+  .ath-main :is(input,select,textarea) { max-width: 100%; }
+  .ath-users, .ath-exlib, .ath-routines, .ath-exercise { min-width: 0; }
+  .ath-users-form-grid, .ath-exlib-form-grid { grid-template-columns: minmax(0,1fr); }
+  .ath-users-field-full, .ath-exlib-full { grid-column: 1 / -1; }
+  .ath-users-actions, .ath-users-form-footer, .ath-exlib-form-actions,
+  .ath-exlib-toolbar, .ath-exlib-heading, .ath-exlib-card-actions,
+  .ath-exlib-modal-actions, .ath-routine-header { flex-wrap: wrap; gap: 10px; }
+  .ath-exlib-list, .ath-routine-list { grid-template-columns: minmax(0,1fr); }
+  .ath-exlib-card, .ath-routine-card { min-width: 0; overflow-wrap: anywhere; }
+  .ath-exlib-video video, .ath-exlib-video iframe, .ath-exlib-card video,
+  .ath-exlib-card iframe { width: 100%; max-width: 100%; }
+}
+@media (max-width: 520px) {
+  .ath-main { padding-left: 12px; padding-right: 12px; }
+  .ath-topbar { gap: 10px; }
+  .ath-topbar h1 { font-size: clamp(21px,6vw,27px); overflow-wrap: anywhere; }
+  .ath-hero { min-height: 0; }
+  .ath-users-form, .ath-exlib-form, .ath-exlib-panel { max-width: 100%; }
+  .ath-exlib-stats, .ath-users-stats { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .ath-exlib-modal, .ath-users-form { max-height: calc(100dvh - 28px); overflow-y: auto; }
+  .ath-main :is(button, input, select, textarea) { touch-action: manipulation; }
+  .ath-main :is(input:not([type="checkbox"]):not([type="radio"]),select,textarea) { font-size: 16px; }
+  .ath-main :is(.ath-exlib-primary,.ath-exlib-secondary,.ath-users-add,
+    .ath-routine-button,.ath-users-actions button,.ath-exlib-card-actions button) { min-height: 42px; }
+}

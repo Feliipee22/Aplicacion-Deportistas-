@@ -1,0 +1,54 @@
+.ath-report { display: grid; gap: 20px; width: 100%; min-width: 0; color: #132439; }
+.ath-report-intro, .ath-report-filters, .ath-report-panel { background: #fff; border: 1px solid #dce4eb; border-radius: 18px; padding: 22px; }
+.ath-report-intro { display: flex; justify-content: space-between; align-items: center; gap: 16px; }
+.ath-report-intro p { margin: 0 0 8px; font-weight: 600; }
+.ath-report-intro small, .ath-report-filters small, .ath-report-panel p, .ath-report-panel small { color: #65758b; line-height: 1.5; }
+.ath-report-intro button { background: #175e58; color: #fff; border: 0; border-radius: 10px; padding: 12px 18px; cursor: pointer; white-space: nowrap; font-weight: 700; }
+.ath-report-intro button:disabled { opacity: .5; cursor: wait; }
+.ath-report-filters { display: flex; align-items: end; gap: 14px; flex-wrap: wrap; }
+.ath-report-filters label { display: grid; gap: 7px; font-size: 13px; font-weight: 700; }
+.ath-report-filters input { min-height: 43px; border: 1px solid #ced9e4; border-radius: 9px; padding: 8px 10px; color: inherit; background: #fff; }
+.ath-report-filters small { flex: 1 1 280px; }
+.ath-report-kpis { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 14px; }
+.ath-report-kpi { background: #fff; border: 1px solid #dce4eb; border-radius: 16px; padding: 20px; display: grid; gap: 8px; min-width: 0; }
+.ath-report-kpi span { color: #5d7086; font-size: 13px; }
+.ath-report-kpi strong { color: #123f42; font-size: clamp(25px, 3vw, 34px); }
+.ath-report-kpi small { color: #8190a1; }
+.ath-report-panels { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 14px; }
+.ath-report-panel { min-width: 0; }
+.ath-report-panel h3 { margin: 0 0 8px; font-size: 18px; }
+.ath-report-panel p { margin: 0 0 22px; font-size: 13px; }
+.ath-report-bars { display: grid; gap: 12px; max-height: 390px; overflow-y: auto; }
+.ath-report-bar-row { display: grid; grid-template-columns: 68px minmax(0, 1fr) 32px; align-items: center; gap: 10px; font-size: 12px; }
+.ath-report-bar-track { height: 13px; background: #edf3f2; border-radius: 9px; overflow: hidden; }
+.ath-report-bar-track > div { background: linear-gradient(90deg, #b8eb6c, #186b62); height: 100%; border-radius: inherit; }
+.ath-report-attendance { display: grid; gap: 5px; padding: 12px 0 20px; }
+.ath-report-attendance strong { font-size: 34px; color: #145e58; }
+.ath-report-attendance span { font-size: 13px; color: #65758b; }
+.ath-report-attendance-list { display: grid; gap: 12px; margin-bottom: 20px; }
+.ath-report-attendance-list > div { display: flex; justify-content: space-between; gap: 10px; border-bottom: 1px solid #edf0f3; padding-bottom: 9px; }
+.ath-report-message, .ath-report-error, .ath-report-scope { margin: 0; padding: 14px 16px; border-radius: 12px; font-size: 13px; line-height: 1.6; }
+.ath-report-message { background: #eaf4f0; }
+.ath-report-error { background: #fff0ed; color: #8c2924; }
+.ath-report-scope { background: #edf3f8; color: #4b6078; }
+@media (max-width: 900px) { .ath-report-kpis { grid-template-columns: repeat(2, minmax(0,1fr)); } .ath-report-panels { grid-template-columns: minmax(0,1fr); } }
+@media (max-width: 520px) { .ath-report { gap: 12px; } .ath-report-intro { align-items: stretch; flex-direction: column; } .ath-report-intro, .ath-report-filters, .ath-report-panel { padding: 16px; } .ath-report-intro button { width: 100%; } .ath-report-kpis { gap: 10px; } .ath-report-kpi { padding: 14px; } .ath-report-kpi strong { font-size: 27px; } .ath-report-filters label { flex: 1 1 130px; min-width: 0; } .ath-report-filters input { width: 100%; min-width: 0; } }
+
+/* ATHLETIX | Indicadores y gráficos en móvil */
+@media (max-width: 680px) {
+  .ath-report, .ath-report-panel { min-width: 0; }
+  .ath-report-kpis { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 9px; }
+  .ath-report-kpi { min-width: 0; padding: 13px; overflow-wrap: anywhere; }
+  .ath-report-kpi strong { font-size: clamp(21px,6vw,28px); }
+  .ath-report-panels { grid-template-columns: minmax(0,1fr); }
+  .ath-report-panel { padding: 15px; }
+  .ath-report-filters { gap: 10px; }
+  .ath-report-filters label { min-width: 0; flex: 1 1 135px; }
+  .ath-report-filters input { width: 100%; max-width: 100%; font-size: 16px; }
+  .ath-report-bar-row { grid-template-columns: 48px minmax(0,1fr) 30px; gap: 7px; }
+  .ath-report-attendance-list > div { flex-wrap: wrap; overflow-wrap: anywhere; }
+  .ath-report :is(button,select,input) { min-height: 42px; }
+}
+@media (max-width: 370px) {
+  .ath-report-kpis { grid-template-columns: 1fr; }
+}

@@ -157,7 +157,7 @@ export default function MisRutinas({ usuarioId, soloVideos = false }) {
   return (
     <section className="ath-routines">
       <div className="ath-section-heading">
-        <h2>{soloVideos ? 'Videos de mis ejercicios' : 'Mis rutinas asignadas'}</h2>
+        
         <p>
           {soloVideos ? 'Abre una rutina para ver los videos de sus ejercicios.' : 'Consulta tus entrenamientos, ejercicios e indicaciones.'}
         </p>

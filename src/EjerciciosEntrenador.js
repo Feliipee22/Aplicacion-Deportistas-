@@ -115,7 +115,6 @@ const eliminarEjercicio = async (ejercicio) => {
   if (eliminandoId !== null || guardando) return;
 
 
-
   setEliminandoId(ejercicio.id);
   setErrorEliminacion('');
   setMensaje('');
@@ -174,7 +173,6 @@ const eliminarEjercicio = async (ejercicio) => {
   }
 };
 
-
   const guardarEjercicio = async (evento) => {
     evento.preventDefault();
 
@@ -221,7 +219,6 @@ const eliminarEjercicio = async (ejercicio) => {
         if (errorSubida) throw errorSubida;
       }
 
-      
 const datosEjercicio = {
   nombre,
   categoria: formulario.categoria,
@@ -315,7 +312,7 @@ await cargarEjercicios();
     <section className="ath-exlib">
       <div className="ath-exlib-heading">
         <div>
-          <h2>Biblioteca de ejercicios</h2>
+          
           <p>
             Registra ejercicios y utilízalos después en tus rutinas.
           </p>

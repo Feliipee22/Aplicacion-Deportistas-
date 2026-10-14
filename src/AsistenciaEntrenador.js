@@ -101,6 +101,8 @@ export default function AsistenciaEntrenador({ usuarioId }) {
   const seleccionada = actividades.find((item) => item.id === actividadId) || null;
   const equipoSeleccionado = equipos.find((item) => item.id === seleccionada?.equipo_id) || null;
   const puedeRegistrar = Boolean(seleccionada && equipoSeleccionado?.estado === true && seleccionada.estado !== 'CANCELADA');
+  const actividadSeleccionadaId = seleccionada?.id;
+  const equipoSeleccionadoId = seleccionada?.equipo_id;
 
   useEffect(() => {
     let cancelado = false;
@@ -111,18 +113,18 @@ export default function AsistenciaEntrenador({ usuarioId }) {
       setBorrador({});
       setErrorDetalle('');
       setErrorGuardado('');
-      if (!seleccionada) { setCargandoDetalle(false); return; }
+      if (!actividadSeleccionadaId || !equipoSeleccionadoId) { setCargandoDetalle(false); return; }
       setCargandoDetalle(true);
       try {
         const [respuestaMiembros, respuestaRegistros] = await Promise.all([
           supabase.from('usuario_equipo')
             .select('usuario_id')
-            .eq('equipo_id', seleccionada.equipo_id)
+            .eq('equipo_id', equipoSeleccionadoId)
             .eq('funcion_en_equipo', 'DEPORTISTA')
             .eq('activo', true),
           supabase.from('asistencias')
             .select('actividad_id, deportista_id, estado_asistencia, observacion, fecha_registro')
-            .eq('actividad_id', seleccionada.id),
+            .eq('actividad_id', actividadSeleccionadaId),
         ]);
         if (respuestaMiembros.error) throw respuestaMiembros.error;
         if (respuestaRegistros.error) throw respuestaRegistros.error;
@@ -166,7 +168,7 @@ export default function AsistenciaEntrenador({ usuarioId }) {
     }
     cargarDetalle();
     return () => { cancelado = true; };
-  }, [seleccionada?.id, seleccionada?.equipo_id, revisionDetalle]);
+  }, [actividadSeleccionadaId, equipoSeleccionadoId, revisionDetalle]);
 
   const actividadesFiltradas = useMemo(() => {
     const texto = busqueda.trim().toLocaleLowerCase('es');
@@ -258,8 +260,8 @@ export default function AsistenciaEntrenador({ usuarioId }) {
     <section className="ath-as">
       <header className="ath-as-header">
         <div>
-          <span className="ath-as-eyebrow">ESPACIO DEL ENTRENADOR</span>
-          <h2>Control de asistencia</h2>
+          
+          
           <p>Registra la participación de tus deportistas en los entrenamientos de cada equipo.</p>
         </div>
         <button type="button" className="ath-as-button ath-as-button-light"

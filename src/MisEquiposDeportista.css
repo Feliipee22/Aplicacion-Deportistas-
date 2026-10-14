@@ -64,3 +64,17 @@
 .ath-md-placeholder-icon { display: grid; place-items: center; width: 56px; height: 56px; border-radius: 16px; background: #eef7df; color: #496d27; font-size: 24px; font-weight: 800; margin-bottom: 6px; }
 .ath-md-placeholder h3 { margin: 0; font-size: 19px; color: #172638; }
 .ath-md-placeholder p { margin: 0; max-width: 330px; font-size: 13px; line-height: 1.6; color: #7a8798; }
+
+/* ATHLETIX | Equipos del deportista */
+@media (max-width: 680px) {
+  .ath-md { min-width: 0; }
+  .ath-md-layout { grid-template-columns: minmax(0,1fr); }
+  .ath-md-intro, .ath-md-detail-header { gap: 12px; }
+  .ath-md-panel { min-width: 0; padding: 16px; }
+  .ath-md-team, .ath-md-member { min-width: 0; overflow-wrap: anywhere; }
+  .ath-md-team-info, .ath-md-person-info { min-width: 0; }
+  .ath-md-summary, .ath-md-counts { gap: 9px; }
+  .ath-md-summary > div, .ath-md-counts > div { padding: 12px; min-width: 0; }
+  .ath-md :is(input,select) { max-width: 100%; min-width: 0; font-size: 16px; }
+  .ath-md :is(button,select) { min-height: 42px; }
+}

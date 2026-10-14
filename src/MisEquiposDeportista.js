@@ -147,8 +147,8 @@ export default function MisEquiposDeportista({ usuarioId }) {
     <section className="ath-md">
       <div className="ath-md-intro">
         <div>
-          <span className="ath-md-eyebrow">ESPACIO DEL DEPORTISTA</span>
-          <h2>Mis equipos</h2>
+          
+          
           <p>Consulta los equipos a los que perteneces y conoce a tus entrenadores y compañeros.</p>
         </div>
         <button

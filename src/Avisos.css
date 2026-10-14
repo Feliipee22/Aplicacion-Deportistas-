@@ -84,3 +84,21 @@
 @media (max-width: 1050px) { .ath-av-layout { grid-template-columns: minmax(255px,.9fr) minmax(0,1.5fr); gap: 12px; } .ath-av-panel { padding: 18px; } }
 @media (max-width: 900px) { .ath-av-layout { grid-template-columns: 1fr; } .ath-av-list { max-height: 360px; } }
 @media (max-width: 650px) { .ath-av-header, .ath-av-detail-head { flex-direction: column; align-items: stretch; } .ath-av-header-actions { justify-content: flex-start; } .ath-av-stats { gap: 8px; } .ath-av-stats > div { padding: 13px; } .ath-av-stats strong { font-size: 23px; } .ath-av-stats span { font-size: 10px; } .ath-av-filters { grid-template-columns: 1fr; gap: 0; } .ath-av-detail-actions { margin-top: 9px; } .ath-av-modal { padding: 19px; } }
+
+/* ATHLETIX | Avisos: listas, detalles y formularios */
+@media (max-width: 680px) {
+  .ath-av { min-width: 0; }
+  .ath-av-layout { grid-template-columns: minmax(0,1fr); }
+  .ath-av-header, .ath-av-detail-head { gap: 12px; }
+  .ath-av-header-actions, .ath-av-detail-actions { display: flex; flex-wrap: wrap; gap: 9px; }
+  .ath-av-panel { min-width: 0; padding: 16px; }
+  .ath-av-item, .ath-av-detail, .ath-av-message { min-width: 0; overflow-wrap: anywhere; }
+  .ath-av-backdrop { padding: 10px; }
+  .ath-av-modal, .ath-av-confirm { max-height: calc(100dvh - 20px); overflow-y: auto; padding: 18px; }
+  .ath-av-modal-actions { display: flex; flex-wrap: wrap; }
+  .ath-av :is(input,select,textarea) { max-width: 100%; min-width: 0; font-size: 16px; }
+  .ath-av :is(button,select) { min-height: 42px; }
+}
+@media (max-width: 370px) {
+  .ath-av-stats { grid-template-columns: 1fr 1fr; }
+}

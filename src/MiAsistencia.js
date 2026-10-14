@@ -92,8 +92,8 @@ export default function MiAsistencia({ usuarioId }) {
     <section className="ath-as ath-as-my">
       <header className="ath-as-header">
         <div>
-          <span className="ath-as-eyebrow">ESPACIO DEL DEPORTISTA</span>
-          <h2>Mi asistencia</h2>
+          
+          
           <p>Consulta tus registros de participación. Solo tu entrenador puede modificarlos.</p>
         </div>
         <button type="button" className="ath-as-button ath-as-button-light" disabled={cargando}

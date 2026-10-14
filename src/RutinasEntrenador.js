@@ -815,7 +815,7 @@ export default function RutinasEntrenador({ usuarioId }) {
     <section className="ath-rt">
       <div className="ath-rt-heading">
         <div>
-          <h2>Rutinas de entrenamiento</h2>
+          
           <p>Combina ejercicios de la biblioteca para preparar entrenamientos.</p>
         </div>
         <button
