@@ -4,6 +4,8 @@ import './Dashboard.css';
 import MisRutinas from './MisRutinas';
 import GestionUsuarios from './GestionUsuarios';
 import EjerciciosEntrenador from './EjerciciosEntrenador';
+import GestionVideosAdmin from './GestionVideosAdmin';
+import VideosDeportista from './VideosDeportista';
 import RutinasEntrenador from './RutinasEntrenador';
 import GestionEquipos from './GestionEquipos';
 import MisEquiposEntrenador from './MisEquiposEntrenador';
@@ -63,6 +65,12 @@ function IconoModulo({ tipo }) {
         <path d="M2 20h21" />
       </>
     ),
+    videos: (
+      <>
+        <rect x="3" y="5" width="18" height="14" rx="2" />
+        <path d="m10 9 5 3-5 3z" />
+      </>
+    ),
     ejercicios: (
       <>
         <path d="M6 6v12M18 6v12M3 9v6M21 9v6M6 12h12" />
@@ -107,6 +115,7 @@ const configuracion = {
     rol: 'Administrador',
     descripcion: 'Gestiona tu organización deportiva desde un solo lugar.',
     modulos: [
+      { id: 'ejercicios', nombre: 'Gestión de videos', descripcion: 'Administrar ejercicios y videos de los entrenadores.' },
       { id: 'usuarios', nombre: 'Usuarios', descripcion: 'Administrar cuentas y permisos.' },
       { id: 'equipos', nombre: 'Equipos', descripcion: 'Organizar equipos y deportistas.' },
       { id: 'actividades', nombre: 'Calendario', descripcion: 'Planificar actividades deportivas.' },
@@ -119,7 +128,7 @@ const configuracion = {
     descripcion: 'Organiza tus entrenamientos y acompaña a tus deportistas.',
     modulos: [
       { id: 'equipos', nombre: 'Mis equipos', descripcion: 'Consultar los equipos asignados.' },
-      { id: 'ejercicios', nombre: 'Ejercicios', descripcion: 'Crear y administrar ejercicios de entrenamiento.' },
+      { id: 'ejercicios', nombre: 'Ejercicios y videos', descripcion: 'Crear ejercicios y subir videos demostrativos.' },
       { id: 'rutinas', nombre: 'Rutinas', descripcion: 'Preparar planes de entrenamiento.' },
       { id: 'actividades', nombre: 'Calendario', descripcion: 'Organizar sesiones y actividades.' },
       { id: 'asistencia', nombre: 'Asistencia', descripcion: 'Registrar participación.' },
@@ -131,6 +140,7 @@ const configuracion = {
     descripcion: 'Tu entrenamiento, actividades y progreso en un solo lugar.',
     modulos: [
       { id: 'rutinas', nombre: 'Mis rutinas', descripcion: 'Consultar tus entrenamientos.' },
+      { id: 'videos', nombre: 'Videos de ejercicios', descripcion: 'Ver los videos de los ejercicios de tus rutinas.' },
       { id: 'equipos', nombre: 'Mis equipos', descripcion: 'Consultar tus equipos, entrenadores y compañeros.' },
       { id: 'actividades', nombre: 'Calendario', descripcion: 'Revisar próximas actividades.' },
       { id: 'asistencia', nombre: 'Mi asistencia', descripcion: 'Consultar tu participación.' },
@@ -292,12 +302,16 @@ export default function Dashboard({ perfil, onCerrarSesion }) {
   <MisEquiposDeportista usuarioId={perfil.id} />
 ) : seccion === 'actividades' && [1, 2, 3].includes(perfil.rol_id) ? (
   <CalendarioDeportivo perfil={perfil} />
+) : seccion === 'ejercicios' && perfil.rol_id === 1 ? (
+  <GestionVideosAdmin />
 ) : seccion === 'ejercicios' && perfil.rol_id === 2 ? (
   <EjerciciosEntrenador usuarioId={perfil.id} />
 ) : seccion === 'rutinas' && perfil.rol_id === 2 ? (
   <RutinasEntrenador usuarioId={perfil.id} />
 ) : seccion === 'rutinas' && perfil.rol_id === 3 ? (
   <MisRutinas usuarioId={perfil.id} />
+) : seccion === 'videos' && perfil.rol_id === 3 ? (
+  <VideosDeportista usuarioId={perfil.id} />
 ) : seccion === 'asistencia' && perfil.rol_id === 2 ? (
   <AsistenciaEntrenador usuarioId={perfil.id} />
 ) : seccion === 'asistencia' && perfil.rol_id === 3 ? (

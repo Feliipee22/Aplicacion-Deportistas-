@@ -1,8 +1,9 @@
 
 import React, { useEffect, useState } from 'react';
 import { supabase } from './supabase';
+import VideoEjercicio from './VideoEjercicio';
 
-export default function MisRutinas({ usuarioId }) {
+export default function MisRutinas({ usuarioId, soloVideos = false }) {
   const [rutinas, setRutinas] = useState([]);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState('');
@@ -156,9 +157,9 @@ export default function MisRutinas({ usuarioId }) {
   return (
     <section className="ath-routines">
       <div className="ath-section-heading">
-        <h2>Mis rutinas asignadas</h2>
+        <h2>{soloVideos ? 'Videos de mis ejercicios' : 'Mis rutinas asignadas'}</h2>
         <p>
-          Consulta tus entrenamientos, ejercicios e indicaciones.
+          {soloVideos ? 'Abre una rutina para ver los videos de sus ejercicios.' : 'Consulta tus entrenamientos, ejercicios e indicaciones.'}
         </p>
       </div>
 
@@ -237,12 +238,8 @@ export default function MisRutinas({ usuarioId }) {
 
                   {!cargandoEjercicios &&
                     !errorEjercicios &&
-                    ejercicios.map((detalle) => {
+                    ejercicios.filter((detalle) => !soloVideos || Boolean(detalle.ejercicio?.video_url)).map((detalle) => {
                       const ejercicio = detalle.ejercicio;
-
-                      const videoValido =
-                        typeof ejercicio?.video_url === 'string' &&
-                        /^https?:\/\//i.test(ejercicio.video_url);
 
                       return (
                         <div
@@ -299,16 +296,7 @@ export default function MisRutinas({ usuarioId }) {
                             </p>
                           )}
 
-                          {videoValido && (
-                            <a
-                              href={ejercicio.video_url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="ath-video-link"
-                            >
-                              Ver video demostrativo ↗
-                            </a>
-                          )}
+                                                     {ejercicio?.video_url && <VideoEjercicio valor={ejercicio.video_url} />}
                         </div>
                       );
                     })}

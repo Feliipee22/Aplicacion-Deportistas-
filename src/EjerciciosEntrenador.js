@@ -1,6 +1,7 @@
 
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { supabase } from './supabase';
+import VideoEjercicio, { VIDEO_BUCKET, VIDEO_PREFIX } from './VideoEjercicio';
 
 const categorias = [
   'Fuerza',
@@ -31,12 +32,16 @@ function esEnlaceValido(valor) {
 }
 
 export default function EjerciciosEntrenador({ usuarioId }) {
+  const [archivoVideo, setArchivoVideo] = useState(null);
+  const [modoVideo, setModoVideo] = useState('enlace');
   const [ejercicios, setEjercicios] = useState([]);
   const [cargando, setCargando] = useState(true);
   const [errorCarga, setErrorCarga] = useState('');
   const [busqueda, setBusqueda] = useState('');
 
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
+  const formularioRef = useRef(null);
+  const [solicitudDesplazamiento, setSolicitudDesplazamiento] = useState(0);
   const [formulario, setFormulario] = useState(formularioVacio);
   const [guardando, setGuardando] = useState(false);
   const [errorFormulario, setErrorFormulario] = useState('');
@@ -79,6 +84,12 @@ export default function EjerciciosEntrenador({ usuarioId }) {
     }));
   };
 
+  useEffect(() => {
+    if (solicitudDesplazamiento > 0 && mostrarFormulario && editandoId !== null) {
+      formularioRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, [solicitudDesplazamiento, mostrarFormulario, editandoId]);
+
   const iniciarEdicion = (ejercicio) => {
   if (ejercicio.creado_por !== usuarioId) return;
 
@@ -90,8 +101,11 @@ export default function EjerciciosEntrenador({ usuarioId }) {
     video_url: ejercicio.video_url || '',
   });
 
+  setArchivoVideo(null);
+  setModoVideo(ejercicio.video_url?.startsWith(VIDEO_PREFIX) ? 'archivo' : 'enlace');
   setEditandoId(ejercicio.id);
   setMostrarFormulario(true);
+  setSolicitudDesplazamiento((anterior) => anterior + 1);
   setErrorFormulario('');
   setMensaje('');
 };
@@ -107,12 +121,9 @@ const eliminarEjercicio = async (ejercicio) => {
   setMensaje('');
 
   try {
-    const { data, error } = await supabase
-      .from('ejercicios')
-      .delete()
-      .eq('id', ejercicio.id)
-      .eq('creado_por', usuarioId)
-      .select('id');
+    let consulta = supabase.from('ejercicios').delete().eq('id', ejercicio.id);
+    consulta = consulta.eq('creado_por', usuarioId);
+    const { data, error } = await consulta.select('id');
 
     if (error) {
       console.error('Error al eliminar ejercicio:', error);
@@ -144,6 +155,11 @@ const eliminarEjercicio = async (ejercicio) => {
       setErrorFormulario('');
     }
 
+    if (ejercicio.video_url?.startsWith(VIDEO_PREFIX)) {
+      const rutaAnterior = ejercicio.video_url.slice(VIDEO_PREFIX.length);
+      const { error: errorVideo } = await supabase.storage.from(VIDEO_BUCKET).remove([rutaAnterior]);
+      if (errorVideo) console.warn('El ejercicio se eliminó, pero no se pudo limpiar su video:', errorVideo);
+    }
     setMensaje(`Se eliminó correctamente "${ejercicio.nombre}".`);
     setEjercicioPorEliminar(null);
 
@@ -169,13 +185,15 @@ const eliminarEjercicio = async (ejercicio) => {
 
     const nombre = formulario.nombre.trim();
     const video = formulario.video_url.trim();
+    const subirArchivo = modoVideo === 'archivo' && archivoVideo;
+    const conservarArchivo = modoVideo === 'archivo' && !archivoVideo && formulario.video_url.startsWith(VIDEO_PREFIX);
 
     if (!nombre) {
       setErrorFormulario('Debes ingresar el nombre del ejercicio.');
       return;
     }
 
-    if (video && !esEnlaceValido(video)) {
+    if (modoVideo === 'enlace' && video && !esEnlaceValido(video)) {
       setErrorFormulario(
         'El video debe tener un enlace válido que comience con https:// o http://.'
       );
@@ -189,16 +207,27 @@ const eliminarEjercicio = async (ejercicio) => {
       return;
     }
 
+    if (archivoVideo && (!['video/mp4', 'video/webm'].includes(archivoVideo.type) || archivoVideo.size > 50 * 1024 * 1024)) {
+      setErrorFormulario('Selecciona un video MP4 o WebM de máximo 50 MB.');
+      return;
+    }
     setGuardando(true);
-
+    let rutaNueva = null;
     try {
+      if (subirArchivo) {
+        const extension = archivoVideo.type === 'video/webm' ? 'webm' : 'mp4';
+        rutaNueva = `${usuarioId}/${crypto.randomUUID()}.${extension}`;
+        const { error: errorSubida } = await supabase.storage.from(VIDEO_BUCKET).upload(rutaNueva, archivoVideo, { contentType: archivoVideo.type, upsert: false });
+        if (errorSubida) throw errorSubida;
+      }
+
       
 const datosEjercicio = {
   nombre,
   categoria: formulario.categoria,
   descripcion: formulario.descripcion.trim() || null,
   indicaciones: formulario.indicaciones.trim() || null,
-  video_url: video || null,
+  video_url: rutaNueva ? VIDEO_PREFIX + rutaNueva : (conservarArchivo ? formulario.video_url : (modoVideo === 'enlace' ? video || null : null)),
 };
 
 const estabaEditando = editandoId !== null;
@@ -206,12 +235,9 @@ const estabaEditando = editandoId !== null;
 let resultado;
 
 if (estabaEditando) {
-  resultado = await supabase
-    .from('ejercicios')
-    .update(datosEjercicio)
-    .eq('id', editandoId)
-    .eq('creado_por', usuarioId)
-    .select('id');
+  let consulta = supabase.from('ejercicios').update(datosEjercicio).eq('id', editandoId);
+  consulta = consulta.eq('creado_por', usuarioId);
+  resultado = await consulta.select('id');
 } else {
   resultado = await supabase
     .from('ejercicios')
@@ -228,13 +254,24 @@ if (resultado.error || !resultado.data?.length) {
     resultado.error
   );
 
+  if (rutaNueva) await supabase.storage.from(VIDEO_BUCKET).remove([rutaNueva]);
+  rutaNueva = null;
   setErrorFormulario(
     'No se pudo guardar el ejercicio. Comprueba los datos y permisos.'
   );
   return;
 }
 
+if (estabaEditando) {
+  const anterior = ejercicios.find((item) => item.id === editandoId)?.video_url;
+  if (anterior?.startsWith(VIDEO_PREFIX) && anterior !== datosEjercicio.video_url) {
+    const { error: errorLimpieza } = await supabase.storage.from(VIDEO_BUCKET).remove([anterior.slice(VIDEO_PREFIX.length)]);
+    if (errorLimpieza) console.warn('No se pudo eliminar el video reemplazado:', errorLimpieza);
+  }
+}
 setFormulario(formularioVacio);
+setArchivoVideo(null);
+setModoVideo('enlace');
 setMostrarFormulario(false);
 setEditandoId(null);
 
@@ -248,7 +285,8 @@ await cargarEjercicios();
 
     } catch (error) {
       console.error('Error inesperado:', error);
-      setErrorFormulario('Ocurrió un problema al guardar el ejercicio.');
+      if (rutaNueva) await supabase.storage.from(VIDEO_BUCKET).remove([rutaNueva]);
+      setErrorFormulario('Ocurrió un problema al guardar el ejercicio o subir el video.');
     } finally {
       setGuardando(false);
     }
@@ -270,7 +308,7 @@ await cargarEjercicios();
 
   const ejerciciosConVideo = ejercicios.filter(
     (ejercicio) =>
-      ejercicio.video_url && esEnlaceValido(ejercicio.video_url)
+      ejercicio.video_url && (ejercicio.video_url.startsWith(VIDEO_PREFIX) || esEnlaceValido(ejercicio.video_url))
   ).length;
 
   return (
@@ -290,6 +328,8 @@ await cargarEjercicios();
             setMostrarFormulario((actual) => !actual);
             setEditandoId(null);
             setFormulario(formularioVacio);
+            setArchivoVideo(null);
+            setModoVideo('enlace');
             setErrorFormulario('');
             setMensaje('');
           }}
@@ -328,7 +368,7 @@ await cargarEjercicios();
 )}
 
       {mostrarFormulario && (
-        <form className="ath-exlib-form" onSubmit={guardarEjercicio}>
+        <form ref={formularioRef} className="ath-exlib-form" onSubmit={guardarEjercicio} style={{ scrollMarginTop: 24 }}>
           <h3>
   {editandoId === null
     ? 'Registrar nuevo ejercicio'
@@ -403,19 +443,21 @@ await cargarEjercicios();
               />
             </label>
 
-            <label className="ath-exlib-field ath-exlib-full">
-              Enlace del video (opcional)
-              <input
-                type="url"
-                placeholder="https://..."
-                value={formulario.video_url}
-                onChange={(e) =>
-                  cambiarCampo('video_url', e.target.value)
-                }
-                maxLength={2000}
-                disabled={guardando}
-              />
-            </label>
+            <div className="ath-exlib-field ath-exlib-full">
+              <strong>Video demostrativo (opcional)</strong>
+              <div className="ath-video-options">
+                <label><input type="radio" name="modoVideo" checked={modoVideo === 'archivo'} onChange={() => { setModoVideo('archivo'); setArchivoVideo(null); }} disabled={guardando} /> Subir video propio</label>
+                <label><input type="radio" name="modoVideo" checked={modoVideo === 'enlace'} onChange={() => { setModoVideo('enlace'); setArchivoVideo(null); }} disabled={guardando} /> Enlace de YouTube u otro video</label>
+              </div>
+              {modoVideo === 'archivo' ? (
+                <>
+                  <input type="file" accept="video/mp4,video/webm" onChange={(evento) => setArchivoVideo(evento.target.files?.[0] || null)} disabled={guardando} />
+                  <small>MP4 o WebM, máximo 50 MB. {formulario.video_url.startsWith(VIDEO_PREFIX) && !archivoVideo ? 'Se conservará el video actual.' : ''}</small>
+                </>
+              ) : (
+                <input type="url" placeholder="https://www.youtube.com/watch?v=..." value={formulario.video_url.startsWith(VIDEO_PREFIX) ? '' : formulario.video_url} onChange={(evento) => cambiarCampo('video_url', evento.target.value)} maxLength={2000} disabled={guardando} />
+              )}
+            </div>
           </div>
 
           <div className="ath-exlib-form-actions">
@@ -514,19 +556,9 @@ await cargarEjercicios();
                   </div>
                 )}
 
-                {ejercicio.video_url &&
-                  esEnlaceValido(ejercicio.video_url) && (
-                    <a
-                      className="ath-exlib-video"
-                      href={ejercicio.video_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      Ver video demostrativo ↗
-                    </a>
-                  )}
+                {ejercicio.video_url && <VideoEjercicio valor={ejercicio.video_url} />}
                   
-{ejercicio.creado_por === usuarioId && (
+{(ejercicio.creado_por === usuarioId) && (
   <div className="ath-exlib-card-actions">
     <button
       type="button"
