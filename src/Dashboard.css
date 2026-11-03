@@ -1433,3 +1433,29 @@
   .ath-main :is(.ath-exlib-primary,.ath-exlib-secondary,.ath-users-add,
     .ath-routine-button,.ath-users-actions button,.ath-exlib-card-actions button) { min-height: 42px; }
 }
+
+/* Refinamiento móvil Athletix */
+@media (max-width: 850px) {
+ .ath-sidebar .ath-brand {display:none;}
+ .ath-sidebar {gap:12px; padding-top:20px; width:min(300px,86vw);}
+ .ath-sidebar-label {padding-left:13px; margin-bottom:3px;}
+ .ath-navigation {gap:4px;}
+ .ath-nav-button {min-height:45px;}
+}
+@media (max-width:520px) {
+ .ath-main {padding:16px 14px 32px;}
+ .ath-topbar {margin-bottom:16px;align-items:center;}
+ .ath-eyebrow {display:none;}
+ .ath-topbar h1 {font-size:22px;}
+ .ath-hero {padding:22px 20px;}
+ .ath-hero h2 {font-size:27px;margin:12px 0 6px;}
+ .ath-hero-footer {margin-top:14px;}
+ .ath-section {margin-top:22px;}
+ .ath-section-heading h2 {font-size:19px;}
+ .ath-cards {gap:10px;margin-top:14px;}
+ .ath-card {min-height:0;padding:15px 17px;border-radius:15px;}
+ .ath-card-icon {width:35px;height:35px;}
+ .ath-card h3 {font-size:16px;margin:10px 0 4px;}
+ .ath-card p {font-size:12px;line-height:1.4;}
+ .ath-card-link {font-size:12px;padding-top:10px;}
+}

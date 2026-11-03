@@ -2,7 +2,6 @@ import React, { useEffect, useRef, useState } from 'react';
 import { supabase } from './supabase';
 import './Login.css';
 import logoAthletix from './assets/athletix-logo.jpg';
-import bannerAthletix from './assets/athletix-banner.jpg';
 
 const SITE_KEY = process.env.REACT_APP_TURNSTILE_SITE_KEY;
 
@@ -193,11 +192,8 @@ export default function Login() {
       <section className={`ath-auth-panel ${vista === 'registro' ? 'ath-auth-panel--register' : ''}`}>
         <div className="ath-auth-card">
           <div className="ath-auth-mobile-brand"><img className="ath-auth-logo" src={logoAthletix} alt="Logo de Athletix" /> <span>ATHLETIX</span></div>
-          <div className="ath-auth-banner-stage ath-auth-banner-stage--welcome">
-            <img className="ath-auth-banner" src={bannerAthletix} alt="Athletix: deportes, entrenamiento y actividad física" />
-          </div>
-          <h2>Bienvenido a Athletix</h2>
-          <p className="ath-auth-subtitle">Accede a tu espacio deportivo.</p>
+          <div className="ath-auth-heading"><span className="ath-auth-heading-kicker">{vista === 'ingresar' ? 'TU ESPACIO DEPORTIVO' : 'COMIENZA TU EXPERIENCIA'}</span><h2>{vista === 'ingresar' ? '¡Qué bueno verte!' : 'Únete a tu equipo'}</h2></div>
+          <p className="ath-auth-subtitle">{vista === 'ingresar' ? 'Todo listo para seguir avanzando.' : 'Completa tus datos para comenzar.'}</p>
           <div className="ath-auth-tabs" role="tablist" aria-label="Acceso a Athletix">
             <button type="button" role="tab" aria-selected={vista === 'ingresar'} className={vista === 'ingresar' ? 'active' : ''} onClick={() => cambiarVista('ingresar')} disabled={cargando}>Iniciar sesión</button>
             <button type="button" role="tab" aria-selected={vista === 'registro'} className={vista === 'registro' ? 'active' : ''} onClick={() => cambiarVista('registro')} disabled={cargando}>Crear cuenta</button>
@@ -213,7 +209,7 @@ export default function Login() {
                 <button type="button" className="ath-auth-show-password" onClick={() => setMostrarPassword((actual) => !actual)} aria-label={mostrarPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'} disabled={cargando}>{mostrarPassword ? 'Ocultar' : 'Mostrar'}</button>
               </div>
               {mensajeError && <p className="ath-auth-error" role="alert">{mensajeError}</p>}
-              <button className="ath-auth-primary" type="submit" disabled={cargando}>{cargando ? 'Ingresando...' : 'Ingresar a Athletix →'}</button>
+              <button className="ath-auth-primary" type="submit" disabled={cargando}>{cargando ? 'Ingresando...' : 'Iniciar sesión →'}</button>
             </form>
           ) : registroExitoso ? (
             <div className="ath-auth-registration-info" role="status">
@@ -224,7 +220,6 @@ export default function Login() {
             </div>
           ) : (
             <form onSubmit={handleRegistro} className="ath-auth-form" aria-label="Registro de deportistas">
-              <p className="ath-auth-register-hint">Crea tu cuenta de deportista. Los entrenadores y administradores son registrados por un administrador.</p>
               <label htmlFor="ath-reg-nombre">Nombre completo</label>
               <input id="ath-reg-nombre" type="text" value={registro.nombre} onChange={(e) => actualizarRegistro('nombre', e.target.value)} autoComplete="name" maxLength={100} required disabled={cargando} placeholder="Tu nombre y apellido" />
               <label htmlFor="ath-reg-rut">RUT</label>
@@ -237,10 +232,10 @@ export default function Login() {
               <input id="ath-reg-confirmar" type="password" value={registro.confirmar} onChange={(e) => actualizarRegistro('confirmar', e.target.value)} autoComplete="new-password" minLength={6} maxLength={128} required disabled={cargando} placeholder="Repite tu contraseña" />
               <Turnstile onToken={setCaptchaToken} resetKey={captchaReset} />
               {mensajeError && <p className="ath-auth-error" role="alert">{mensajeError}</p>}
-              <button className="ath-auth-primary" type="submit" disabled={cargando || !captchaToken}>{cargando ? 'Creando cuenta...' : 'Crear cuenta de deportista →'}</button>
+              <button className="ath-auth-primary" type="submit" disabled={cargando || !captchaToken}>{cargando ? 'Creando cuenta...' : 'Crear cuenta →'}</button>
             </form>
           )}
-          <p className="ath-auth-bottom-note">Athletix · Plataforma de gestión deportiva</p>
+
         </div>
       </section>
     </main>

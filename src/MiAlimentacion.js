@@ -1,5 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { supabase } from './supabase';
+import { Capacitor } from '@capacitor/core';
+import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 import './MiAlimentacion.css';
 
 const crearId = () => `${Date.now()}-${Math.random().toString(36).slice(2)}`;
@@ -121,9 +123,38 @@ export default function MiAlimentacion() {
     setAlimentos((actuales) => actuales.map((a) => a.id === id ? { ...a, [campo]: valor } : a));
   };
 
-  const elegirFoto = (evento) => {
-    const archivo = evento.target.files?.[0];
-    evento.target.value = ''; // Permite seleccionar nuevamente la misma foto.
+  // En Android usamos la cámara nativa. En el navegador mantenemos el selector HTML.
+  const tomarFotografia = async () => {
+    if (!Capacitor.isNativePlatform()) {
+      camaraRef.current?.click();
+      return;
+    }
+
+    try {
+      const imagen = await Camera.getPhoto({
+        quality: 85,
+        allowEditing: false,
+        resultType: CameraResultType.DataUrl,
+        source: CameraSource.Camera,
+        correctOrientation: true,
+      });
+      if (!imagen.dataUrl) throw new Error('La cámara no devolvió una fotografía.');
+
+      const respuesta = await fetch(imagen.dataUrl);
+      const blob = await respuesta.blob();
+      const tipo = blob.type === 'image/png' || blob.type === 'image/webp' ? blob.type : 'image/jpeg';
+      const extension = tipo === 'image/png' ? 'png' : tipo === 'image/webp' ? 'webp' : 'jpg';
+      const archivo = new File([blob], `comida-${Date.now()}.${extension}`, { type: tipo });
+      procesarFoto(archivo);
+    } catch (error) {
+      // Cancelar la cámara no debe borrar la foto anterior.
+      const mensaje = String(error?.message || '');
+      if (/cancel|cancelad|user cancelled|user canceled/i.test(mensaje)) return;
+      setAviso(`No se pudo abrir la cámara: ${mensaje || 'Revisa los permisos de cámara de Athletix.'}`);
+    }
+  };
+
+  const procesarFoto = (archivo) => {
     if (!archivo) return;
     if (!['image/jpeg', 'image/png', 'image/webp'].includes(archivo.type)) {
       setAviso('Selecciona una fotografía JPG, PNG o WebP.'); return;
@@ -134,6 +165,12 @@ export default function MiAlimentacion() {
     setFoto(archivo);
     setObservaciones('');
     setAviso('Fotografía lista. Pulsa «Analizar con IA» para reconocer los alimentos.');
+  };
+
+  const elegirFoto = (evento) => {
+    const archivo = evento.target.files?.[0];
+    evento.target.value = '';
+    procesarFoto(archivo);
   };
 
   const analizarConIA = async () => {
@@ -279,7 +316,7 @@ export default function MiAlimentacion() {
           <h3>1. Fotografía de tu comida</h3>
           <p>Toma una foto con tu móvil o selecciona una imagen JPG, PNG o WebP (máximo 8 MB).</p>
           <div className="ath-food-actions">
-            <button type="button" className="ath-food-upload" onClick={() => camaraRef.current?.click()}>Tomar fotografía</button>
+            <button type="button" className="ath-food-upload" onClick={tomarFotografia}>Tomar fotografía</button>
             <button type="button" className="ath-food-upload ath-food-upload--secondary" onClick={() => galeriaRef.current?.click()}>Elegir de galería</button>
             <input ref={camaraRef} className="ath-food-file-hidden" type="file" accept="image/jpeg,image/png,image/webp" capture="environment" onChange={elegirFoto} aria-label="Tomar fotografía con la cámara" />
             <input ref={galeriaRef} className="ath-food-file-hidden" type="file" accept="image/jpeg,image/png,image/webp" onChange={elegirFoto} aria-label="Elegir fotografía de la galería" />
