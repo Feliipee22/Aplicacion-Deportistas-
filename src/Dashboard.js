@@ -373,29 +373,75 @@ export default function Dashboard({ perfil, onCerrarSesion }) {
 ) : seccion === 'avisos' && [1, 2, 3].includes(perfil.rol_id) ? (
   <Avisos perfil={perfil} />
 ) : (
+  <>
+    <section className="ath-module">
+      <div className="ath-module-icon">
+        {moduloActual?.nombre.charAt(0)}
+      </div>
 
-          <section className="ath-module">
-            <div className="ath-module-icon">
-              {moduloActual?.nombre.charAt(0)}
-            </div>
+      <p>{moduloActual?.descripcion}</p>
 
+      <div className="ath-module-notice">
+        Estamos preparando este módulo.
+        Próximamente mostraremos aquí
+        la información real de Supabase.
+      </div>
 
-            <p>{moduloActual?.descripcion}</p>
+      <button
+        className="ath-back-button"
+        onClick={() => navegar('inicio')}
+      >
+        ← Volver al inicio
+      </button>
+    </section>
 
-            <div className="ath-module-notice">
-              Estamos preparando este módulo.
-              Próximamente mostraremos aquí
-              la información real de Supabase.
-            </div>
-
-            <button
-              className="ath-back-button"
-              onClick={() => navegar('inicio')}
-            >
-              ← Volver al inicio
-            </button>
-          </section>
-        )}
+    {/* Botón Seleccionable del Mapa de Juego */}
+    <div
+      role="button"
+      tabIndex={0}
+      onClick={() => alert('¡Clic detectado! En el siguiente paso conectaremos el mapa real.')}
+      onKeyDown={(event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          alert('¡Clic detectado! En el siguiente paso conectaremos el mapa real.');
+        }
+      }}
+      style={{
+        backgroundColor: 'white',
+        padding: '20px',
+        borderRadius: '10px',
+        boxShadow: '0 2px 5px rgba(0,0,0,0.05)',
+        cursor: 'pointer',
+        width: '200px',
+        display: 'flex',
+        flexDirection: 'column',
+        transition: 'transform 0.2s ease',
+      }}
+    >
+      <div style={{ marginBottom: '15px' }}>
+        <span
+          style={{
+            backgroundColor: '#e8f5e9',
+            padding: '10px',
+            borderRadius: '8px',
+            fontSize: '20px',
+          }}
+        >
+          🗺️
+        </span>
+      </div>
+      <h3 style={{ margin: '0 0 10px 0', fontSize: '16px', color: '#1E293B' }}>
+        Mapa de juego
+      </h3>
+      <p style={{ margin: '0 0 15px 0', color: 'gray', fontSize: '12px', flexGrow: 1 }}>
+        Encuentra canchas y únete a partidos.
+      </p>
+      <span style={{ fontWeight: 'bold', fontSize: '13px', color: '#1E293B' }}>
+        Explorar →
+      </span>
+    </div>
+  </>
+)}
       </main>
     </div>
   );
