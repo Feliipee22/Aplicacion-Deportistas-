@@ -1,10 +1,8 @@
-import logoAthletix from './Athletix_Icon.png';
+
 import React, { useEffect, useState } from 'react';
 import { supabase } from './supabase';
 import Login from './Login';
 import Dashboard from './Dashboard';
-import Mapadeportivo from './Mapadeportivo';
-import 'leaflet/dist/leaflet.css';
 
 const nombresRoles = {
   1: 'Administrador',
@@ -122,35 +120,12 @@ function App() {
     );
   }
 
-return (
-    <div>
-      <nav style={{ 
-        display: 'flex', 
-        alignItems: 'center', 
-        padding: '10px 20px', 
-        backgroundColor: '#1E293B', 
-        color: 'white',
-        boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-      }}>
-        <img 
-          src={logoAthletix} 
-          alt="Athletix Logo" 
-          style={{ width: '40px', height: '40px', objectFit: 'contain', marginRight: '10px' }} 
-        />
-        <span style={{ fontWeight: 'bold', fontSize: '20px', letterSpacing: '1px' }}>
-          ATHLETIX
-        </span>
-      </nav>
-
-      <Dashboard
-        perfil={perfil}
-        onCerrarSesion={cerrarSesion}
-      />
-      {/* Tu nuevo mapa interactivo */}
-      <Mapadeportivo />
-      
-    </div>
-  );
+  return (
+  <Dashboard
+    perfil={perfil}
+    onCerrarSesion={cerrarSesion}
+  />
+);
 }
 
 export default App;
