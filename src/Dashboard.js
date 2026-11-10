@@ -16,6 +16,7 @@ import AsistenciaEntrenador from './AsistenciaEntrenador';
 import MiAsistencia from './MiAsistencia';
 import Avisos from './Avisos';
 import ReportesAdmin from './ReportesAdmin';
+import AthletixMatch from './AthletixMatch';
 import logoAthletix from "./assets/athletix-logo.jpg";
 
 // Iconos del panel: no requieren librerías adicionales.
@@ -90,6 +91,12 @@ function IconoModulo({ tipo }) {
         <path d="M12 4v5M9 6l3 3 3-3" />
       </>
     ),
+    mapa: (
+      <>
+        <path d="m3 6 6-3 6 3 6-3v15l-6 3-6-3-6 3z" />
+        <path d="M9 3v15M15 6v15" />
+      </>
+    ),
     asistencia: (
       <>
         <circle cx="9" cy="8" r="3" />
@@ -129,6 +136,7 @@ const configuracion = {
       { id: 'actividades', nombre: 'Calendario', descripcion: 'Planificar actividades deportivas.' },
       { id: 'avisos', nombre: 'Avisos', descripcion: 'Publicar comunicaciones.' },
       { id: 'reportes', nombre: 'Reportes', descripcion: 'Consultar estadísticas.' },
+      { id: 'mapa', nombre: 'Athletix Match', descripcion: 'Explorar lugares deportivos y organizar partidos.' },
     ],
   },
   2: {
@@ -142,6 +150,7 @@ const configuracion = {
       { id: 'actividades', nombre: 'Calendario', descripcion: 'Organizar sesiones y actividades.' },
       { id: 'asistencia', nombre: 'Asistencia', descripcion: 'Registrar participación.' },
       { id: 'avisos', nombre: 'Avisos', descripcion: 'Comunicar novedades.' },
+      { id: 'mapa', nombre: 'Athletix Match', descripcion: 'Explorar lugares deportivos y organizar partidos.' },
     ],
   },
   3: {
@@ -155,6 +164,7 @@ const configuracion = {
       { id: 'actividades', nombre: 'Calendario', descripcion: 'Revisar próximas actividades.' },
       { id: 'asistencia', nombre: 'Mi asistencia', descripcion: 'Consultar tu participación.' },
       { id: 'avisos', nombre: 'Avisos', descripcion: 'Revisar novedades de tu club.' },
+      { id: 'mapa', nombre: 'Athletix Match', descripcion: 'Explorar lugares deportivos y organizar partidos.' },
     ],
   },
 };
@@ -342,6 +352,8 @@ export default function Dashboard({ perfil, onCerrarSesion }) {
             </section>
           </>
                         
+) : seccion === 'mapa' && [1, 2, 3].includes(perfil.rol_id) ? (
+  <AthletixMatch perfil={perfil} />
 ) : seccion === 'usuarios' && perfil.rol_id === 1 ? (
   <GestionUsuarios />
 ) : seccion === 'equipos' && perfil.rol_id === 1 ? (
