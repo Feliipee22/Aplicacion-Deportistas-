@@ -102,3 +102,14 @@
 @media (max-width: 370px) {
   .ath-av-stats { grid-template-columns: 1fr 1fr; }
 }
+
+/* Athletix Match: convocatorias en Avisos */
+.ath-match-notices{margin:0 0 20px;padding:20px;border:1px solid #dce7ed;border-radius:18px;background:#f8fbfd}
+.ath-match-notices-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px}
+.ath-match-notices-head h3{margin:5px 0;font-size:18px;color:#172638}
+.ath-match-notices-head p{margin:0;color:#66788a;font-size:13px}
+.ath-match-notices-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));gap:10px}
+.ath-match-notice{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:14px;background:#fff;border:1px solid #e1e8ed;border-radius:14px}
+.ath-match-notice>div{display:flex;flex-direction:column;gap:5px;min-width:0}
+.ath-match-notice strong{font-size:15px}.ath-match-notice span{font-size:12px;color:#536477}.ath-match-notice small{color:#34774c;font-weight:700}
+@media(max-width:520px){.ath-match-notices{padding:13px}.ath-match-notice{align-items:flex-start;flex-direction:column}.ath-match-notice button{width:100%}}

@@ -96,3 +96,49 @@
   .ath-food-actions, .ath-food-fields, .ath-food-bottom-actions { grid-template-columns: 1fr; }
   .ath-food-fields label:first-child { grid-column: auto; }
 }
+
+/* Navegación principal de alimentación */
+.ath-food-navigation{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;padding:6px;background:#eaf0f3;border-radius:16px;position:sticky;top:62px;z-index:5;box-shadow:0 4px 15px rgba(20,42,56,.06)}
+.ath-food-navigation button{border:0;border-radius:11px;background:transparent;color:#506579;padding:13px 6px;min-height:46px;font-size:13px;font-weight:800;cursor:pointer;white-space:nowrap}
+.ath-food-navigation button.active{background:#fff;color:#102a3d;box-shadow:0 2px 10px rgba(15,39,55,.1)}
+.ath-food-daily-top,.ath-food-progress-intro{border:1px solid #dae5e8;background:#fff;border-radius:18px;padding:22px;display:grid;gap:17px;min-width:0}
+.ath-food-daily-heading{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.ath-food-daily-heading h2,.ath-food-progress-intro h2{margin:5px 0 6px;color:#142e40;font-size:22px}
+.ath-food-daily-heading p,.ath-food-progress-intro p{margin:0;color:#657786;font-size:13px;line-height:1.5}
+.ath-food-daily-eyebrow{font-size:10px;letter-spacing:1.2px;color:#51875a;font-weight:900}
+.ath-food-refresh{border:1px solid #d5e1e8;border-radius:10px;padding:10px;background:#f6f9fa;color:#24445a;font-weight:700;cursor:pointer}
+.ath-food-daily-metrics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.ath-food-daily-metrics>div{background:#eef6f0;padding:18px 14px;border-radius:13px;display:grid;gap:8px;min-width:0}
+.ath-food-daily-metrics span{font-size:12px;color:#536c65}.ath-food-daily-metrics strong{font-size:25px;color:#173c35;overflow-wrap:anywhere}.ath-food-daily-metrics small{font-size:13px}
+.ath-food-primary-action{width:100%;border:0;border-radius:12px;background:#b5ee72;color:#173523;padding:15px;font-weight:850;cursor:pointer;min-height:50px}
+.ath-food-secondary-action{border:0;background:transparent;color:#2a5c65;font-weight:750;cursor:pointer;text-align:left;padding:6px 0}
+.ath-food-today-list{display:grid;gap:9px}.ath-food-today-list>p{margin:0;color:#71808b;font-size:13px}
+.ath-food-today-item{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px;background:#f5f8fa;border-radius:11px}
+.ath-food-today-item>div{display:grid;gap:4px}.ath-food-today-item strong{font-size:13px;color:#163449}.ath-food-today-item span{font-size:12px;color:#5a707d}
+.ath-food-today-item button{background:#fff;border:1px solid #d4e0e6;border-radius:8px;padding:9px 13px;font-weight:700;color:#28586b;cursor:pointer}
+@media(max-width:600px){.ath-food-navigation{top:56px}.ath-food-navigation button{font-size:12px}.ath-food-daily-top,.ath-food-progress-intro{padding:16px}.ath-food-daily-heading h2{font-size:19px}.ath-food-daily-metrics strong{font-size:21px}}
+
+
+/* Panel de registro: bottom sheet independiente del scroll de Mi día */
+.ath-food-sheet-root{position:fixed;inset:0;z-index:99999;pointer-events:none;display:block;padding:0;margin:0}
+.ath-food-sheet-backdrop{position:absolute;inset:0;background:rgba(9,24,34,.65);backdrop-filter:blur(3px);pointer-events:auto;animation:athFoodFade .22s ease-out}
+.ath-food-sheet{position:absolute;left:50%;bottom:0;transform:translateX(-50%);width:min(100%,850px);height:min(91dvh,900px);max-height:calc(100dvh - 12px);background:#f5f8fa;border-radius:24px 24px 0 0;box-shadow:0 -18px 70px rgba(0,0,0,.28);pointer-events:auto;display:flex;flex-direction:column;overflow:hidden;animation:athFoodSlide .32s cubic-bezier(.2,.8,.2,1)}
+.ath-food-sheet-handle{width:46px;height:5px;background:#c7d5dc;border-radius:99px;align-self:center;margin:10px 0 4px;flex-shrink:0}
+.ath-food-sheet-header{padding:10px 22px 16px;display:flex;justify-content:space-between;gap:16px;align-items:center;background:#fff;border-bottom:1px solid #dce7eb;flex-shrink:0}
+.ath-food-sheet-header h2{font-size:22px;margin:4px 0;color:#143245}
+.ath-food-sheet-header p{font-size:13px;margin:0;color:#647986}
+.ath-food-sheet-close{border:1px solid #d9e5e8;background:#f3f7f8;color:#183d50;border-radius:50%;width:42px;height:42px;min-width:42px;cursor:pointer;font-size:19px}
+.ath-food-sheet-scroll{padding:16px 20px max(32px,env(safe-area-inset-bottom));overflow-y:auto;overscroll-behavior:contain;flex:1;min-height:0;display:grid;align-content:start;gap:14px;-webkit-overflow-scrolling:touch}
+.ath-food-sheet-scroll .ath-food-hero{display:none}
+.ath-food-sheet-scroll .ath-food-editor{scroll-margin-top:12px}
+@keyframes athFoodSlide{from{transform:translate(-50%,100%);opacity:.8}to{transform:translate(-50%,0);opacity:1}}
+@keyframes athFoodFade{from{opacity:0}to{opacity:1}}
+@media(max-width:640px){.ath-food-sheet{width:100%;height:94dvh;border-radius:22px 22px 0 0}.ath-food-sheet-header{padding:8px 16px 13px}.ath-food-sheet-header h2{font-size:20px}.ath-food-sheet-scroll{padding:12px 12px max(24px,env(safe-area-inset-bottom))}.ath-food-sheet .ath-food-grid{grid-template-columns:1fr}.ath-food-sheet .ath-food-panel{padding:16px}}
+@media(prefers-reduced-motion:reduce){.ath-food-sheet,.ath-food-sheet-backdrop{animation:none}}
+
+/* Corrección responsive del contenedor y pestañas - noviembre 2026 */
+.ath-food { width:100%; max-width:100%; min-width:0; box-sizing:border-box; overflow-x:clip; }
+.ath-food > * { min-width:0; max-width:100%; box-sizing:border-box; }
+.ath-food-navigation { width:100%; min-width:0; max-width:100%; grid-template-columns:repeat(3,minmax(0,1fr)); }
+.ath-food-navigation button { min-width:0; width:100%; white-space:normal; overflow-wrap:break-word; line-height:1.2; }
+@media(max-width:420px){.ath-food-navigation{gap:3px;padding:4px}.ath-food-navigation button{padding:11px 3px;font-size:11px}}

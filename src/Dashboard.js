@@ -10,6 +10,7 @@ import MiAlimentacion from './MiAlimentacion';
 import RutinasEntrenador from './RutinasEntrenador';
 import GestionEquipos from './GestionEquipos';
 import MisEquiposEntrenador from './MisEquiposEntrenador';
+import ProgresoEntrenador from './ProgresoEntrenador';
 import MisEquiposDeportista from './MisEquiposDeportista';
 import CalendarioDeportivo from './CalendarioDeportivo';
 import AsistenciaEntrenador from './AsistenciaEntrenador';
@@ -144,6 +145,7 @@ const configuracion = {
     descripcion: 'Organiza tus entrenamientos y acompaña a tus deportistas.',
     modulos: [
       { id: 'equipos', nombre: 'Mis equipos', descripcion: 'Consultar los equipos asignados.' },
+      { id: 'progreso', nombre: 'Progreso deportivo', descripcion: 'Revisar actividad y seguimiento de tus deportistas.' },
       { id: 'ejercicios', nombre: 'Ejercicios y videos', descripcion: 'Crear ejercicios y subir videos demostrativos.' },
       { id: 'rutinas', nombre: 'Rutinas', descripcion: 'Preparar planes de entrenamiento.' },
       { id: 'alimentacion', nombre: 'Mi alimentación', descripcion: 'Registrar comidas y consultar sus macronutrientes.' },
@@ -171,6 +173,7 @@ const configuracion = {
 
 export default function Dashboard({ perfil, onCerrarSesion }) {
   const [seccion, setSeccion] = useState('inicio');
+  const [partidoDesdeAviso, setPartidoDesdeAviso] = useState(null);
   const [menuMovilAbierto, setMenuMovilAbierto] = useState(false);
 
   const navegar = (destino) => {
@@ -353,13 +356,15 @@ export default function Dashboard({ perfil, onCerrarSesion }) {
           </>
                         
 ) : seccion === 'mapa' && [1, 2, 3].includes(perfil.rol_id) ? (
-  <AthletixMatch perfil={perfil} />
+  <AthletixMatch perfil={perfil} partidoDestacadoId={partidoDesdeAviso} />
 ) : seccion === 'usuarios' && perfil.rol_id === 1 ? (
   <GestionUsuarios />
 ) : seccion === 'equipos' && perfil.rol_id === 1 ? (
   <GestionEquipos />
 ) : seccion === 'equipos' && perfil.rol_id === 2 ? (
   <MisEquiposEntrenador usuarioId={perfil.id} />
+) : seccion === 'progreso' && perfil.rol_id === 2 ? (
+  <ProgresoEntrenador />
 ) : seccion === 'equipos' && perfil.rol_id === 3 ? (
   <MisEquiposDeportista usuarioId={perfil.id} />
 ) : seccion === 'actividades' && [1, 2, 3].includes(perfil.rol_id) ? (
@@ -383,7 +388,7 @@ export default function Dashboard({ perfil, onCerrarSesion }) {
 ) : seccion === 'reportes' && perfil.rol_id === 1 ? (
   <ReportesAdmin perfil={perfil} />
 ) : seccion === 'avisos' && [1, 2, 3].includes(perfil.rol_id) ? (
-  <Avisos perfil={perfil} />
+  <Avisos perfil={perfil} onVerPartido={(id) => { setPartidoDesdeAviso(id); navegar('mapa'); }} />
 ) : (
 
           <section className="ath-module">

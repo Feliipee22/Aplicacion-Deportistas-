@@ -1,4 +1,4 @@
-
+import EntrenadorIAPro from './EntrenadorIAPro';
 import React, { useEffect, useState } from 'react';
 import { supabase } from './supabase';
 import VideoEjercicio from './VideoEjercicio';
@@ -156,6 +156,7 @@ export default function MisRutinas({ usuarioId, soloVideos = false }) {
 
   return (
     <section className="ath-routines">
+      {!soloVideos && <EntrenadorIAPro />}
       <div className="ath-section-heading">
         
         <p>

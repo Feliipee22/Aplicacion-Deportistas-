@@ -24,13 +24,16 @@ function explicarError(error, operacion) {
   return `${operacion}: ${error?.message || 'Error desconocido.'}`;
 }
 
-export default function Avisos({ perfil }) {
+export default function Avisos({ perfil, onVerPartido }) {
   const administrador = perfil.rol_id === 1;
   const entrenador = perfil.rol_id === 2;
   const deportista = perfil.rol_id === 3;
   const puedePublicar = administrador || entrenador;
 
   const [avisos, setAvisos] = useState([]);
+  const [partidosMatch, setPartidosMatch] = useState([]);
+  const [lugaresMatch, setLugaresMatch] = useState({});
+  const [errorMatch, setErrorMatch] = useState('');
   const [equipos, setEquipos] = useState([]);
   const [cargando, setCargando] = useState(true);
   const [errorCarga, setErrorCarga] = useState('');
@@ -88,7 +91,20 @@ export default function Avisos({ perfil }) {
           .limit(300);
         if (respuestaAvisos.error) throw respuestaAvisos.error;
 
+        // Convocatorias en vivo: se derivan de partidos_activos, sin duplicarlas en avisos.
+        const [resPartidos, resLugares] = await Promise.all([
+          supabase.from('partidos_activos').select('id, deporte, lugar_id, fecha_hora, capacidad_maxima, jugadores_actuales').gte('fecha_hora', new Date().toISOString()).order('fecha_hora', { ascending: true }).limit(100),
+          supabase.from('lugares_deportivos').select('id, nombre'),
+        ]);
         if (cancelado) return;
+        if (resPartidos.error || resLugares.error) {
+          setErrorMatch('No se pudieron consultar los partidos de Athletix Match.');
+          setPartidosMatch([]);
+        } else {
+          setErrorMatch('');
+          setPartidosMatch(resPartidos.data || []);
+          setLugaresMatch(Object.fromEntries((resLugares.data || []).map((l) => [String(l.id), l.nombre])));
+        }
         const siguientes = respuestaAvisos.data || [];
         setEquipos(listaEquipos);
         setAvisos(siguientes);
@@ -300,6 +316,18 @@ export default function Avisos({ perfil }) {
       {errorAccion && !modal && <div className="ath-av-error" role="alert">{errorAccion}</div>}
       {mensajeAccion && <div className="ath-av-success" role="status">{mensajeAccion}</div>}
 
+      <section className="ath-match-notices" aria-label="Convocatorias Athletix Match">
+        <div className="ath-match-notices-head"><div><span className="ath-av-eyebrow">ATHLETIX MATCH</span><h3>Partidos y cupos disponibles</h3><p>Convocatorias actualizadas desde Athletix Match.</p></div><button type="button" className="ath-av-btn ath-av-btn-light" onClick={() => setRevision((v) => v + 1)}>Actualizar</button></div>
+        {errorMatch && <p role="alert" className="ath-av-muted">{errorMatch}</p>}
+        {!errorMatch && partidosMatch.length === 0 && <p className="ath-av-muted">No hay partidos próximos publicados.</p>}
+        <div className="ath-match-notices-list">{partidosMatch.map((partido) => {
+          const disponibles = Math.max(0, Number(partido.capacidad_maxima) - Number(partido.jugadores_actuales));
+          return <article className="ath-match-notice" key={partido.id}>
+            <div><strong>{partido.deporte}</strong><span>{lugaresMatch[String(partido.lugar_id)] || 'Recinto deportivo'}</span><span>{formatearFecha(partido.fecha_hora)}</span><small>{disponibles > 0 ? `${disponibles} cupos disponibles` : 'Cupos completos'}</small></div>
+            <button type="button" className="ath-av-btn ath-av-btn-light" onClick={() => onVerPartido?.(partido.id)}>Ver partido</button>
+          </article>;
+        })}</div>
+      </section>
       <div className="ath-av-stats">
         <div><span>{deportista ? 'Avisos disponibles' : administrador ? 'Avisos registrados' : 'Avisos visibles'}</span><strong>{deportista ? activos : avisosAccesibles.length}</strong></div>
         <div><span>{deportista ? 'Generales' : 'Publicados'}</span><strong>{deportista ? generales : activos}</strong></div>

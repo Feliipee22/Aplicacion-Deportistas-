@@ -1,8 +1,10 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { supabase } from './supabase';
 import { Capacitor } from '@capacitor/core';
 import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 import './MiAlimentacion.css';
+import AlimentacionIAPro from './AlimentacionIAPro';
 
 const crearId = () => `${Date.now()}-${Math.random().toString(36).slice(2)}`;
 const nuevoAlimento = () => ({ id: crearId(), nombre: '', gramos: '100', proteinas: '0', carbohidratos: '0', grasas: '0' });
@@ -60,6 +62,9 @@ const mensajeError = (error) => {
 };
 
 export default function MiAlimentacion() {
+  const [pestana, setPestana] = useState('dia');
+  const [mostrarFormulario, setMostrarFormulario] = useState(false);
+  const [mostrarComidasDia, setMostrarComidasDia] = useState(true);
   const [foto, setFoto] = useState(null);
   const [fotoUrl, setFotoUrl] = useState('');
   const [alimentos, setAlimentos] = useState([nuevoAlimento()]);
@@ -78,6 +83,41 @@ export default function MiAlimentacion() {
   const camaraRef = useRef(null);
   const galeriaRef = useRef(null);
   const editorRef = useRef(null);
+  const panelRef = useRef(null);
+  const cerrarRef = useRef(null);
+  const botonRegistroRef = useRef(null);
+
+  const abrirRegistro = () => { setMostrarFormulario(true); };
+  const cerrarRegistro = () => {
+    if (guardando || analizando) return;
+    setMostrarFormulario(false);
+    botonRegistroRef.current?.focus();
+  };
+
+  useEffect(() => {
+    if (!mostrarFormulario) return undefined;
+    const anterior = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    const foco = document.activeElement;
+    const alAbrir = window.requestAnimationFrame(() => cerrarRef.current?.focus());
+    const onKey = (e) => {
+      if (e.key === 'Escape' && !guardando && !analizando) cerrarRegistro();
+      if (e.key !== 'Tab' || !panelRef.current) return;
+      const elementos = [...panelRef.current.querySelectorAll('button:not([disabled]), input:not([disabled]):not([type="hidden"]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])')].filter(el => el.getClientRects().length);
+      if (!elementos.length) return;
+      const primero = elementos[0];
+      const ultimo = elementos[elementos.length - 1];
+      if (e.shiftKey && document.activeElement === primero) { e.preventDefault(); ultimo.focus(); }
+      else if (!e.shiftKey && document.activeElement === ultimo) { e.preventDefault(); primero.focus(); }
+    };
+    document.addEventListener('keydown', onKey);
+    return () => {
+      window.cancelAnimationFrame(alAbrir);
+      document.body.style.overflow = anterior;
+      document.removeEventListener('keydown', onKey);
+      if (foco?.isConnected && typeof foco.focus === 'function') foco.focus();
+    };
+  }, [mostrarFormulario, guardando, analizando]);
 
   useEffect(() => {
     if (!foto) { setFotoUrl(''); return undefined; }
@@ -264,7 +304,8 @@ export default function MiAlimentacion() {
       nuevoRegistro();
       setAviso(eraEdicion ? 'Registro actualizado correctamente.' : 'Comida guardada correctamente en tu historial privado.');
       await cargarHistorial();
-    } catch (error) {
+      setMostrarFormulario(false);
+      } catch (error) {
       setAviso(`No se pudo guardar: ${mensajeError(error)}`);
     } finally {
       setGuardando(false);
@@ -282,7 +323,7 @@ export default function MiAlimentacion() {
     setFoto(null);
     setObservaciones(r.observaciones || '');
     setAviso('Editando una comida guardada. Realiza los cambios y pulsa «Actualizar comida».');
-    editorRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    abrirRegistro();
   };
 
   const eliminar = async (r) => {
@@ -305,6 +346,29 @@ export default function MiAlimentacion() {
 
   return (
     <section className="ath-food" aria-label="Mi alimentación">
+      <div className="ath-food-navigation" role="tablist" aria-label="Secciones de alimentación">
+        <button type="button" role="tab" aria-selected={pestana === 'dia'} className={pestana === 'dia' ? 'active' : ''} onClick={() => setPestana('dia')}>Mi día</button>
+        <button type="button" role="tab" aria-selected={pestana === 'plan'} className={pestana === 'plan' ? 'active' : ''} onClick={() => setPestana('plan')}>Plan IA</button>
+        <button type="button" role="tab" aria-selected={pestana === 'progreso'} className={pestana === 'progreso' ? 'active' : ''} onClick={() => setPestana('progreso')}>Mi progreso</button>
+      </div>
+      {pestana === 'plan' && <AlimentacionIAPro />}
+      {pestana === 'dia' && <>
+      <div className="ath-food-daily-top">
+        <div className="ath-food-daily-heading"><div><span className="ath-food-daily-eyebrow">SEGUIMIENTO PERSONAL</span><h2>Mi alimentación de hoy</h2><p>Registra lo que comes y consulta tus estimaciones diarias.</p></div><button type="button" className="ath-food-refresh" onClick={cargarHistorial} disabled={cargando}>Actualizar</button></div>
+        <div className="ath-food-daily-metrics"><div><span>Calorías registradas</span><strong>{mostrar(registros.filter(r => r.fecha === fechaLocal()).reduce((a,r) => a + numero(r.calorias), 0))} <small>kcal</small></strong></div><div><span>Comidas de hoy</span><strong>{registros.filter(r => r.fecha === fechaLocal()).length}</strong></div></div>
+        <button type="button" className="ath-food-primary-action" ref={botonRegistroRef} onClick={() => { nuevoRegistro(); abrirRegistro(); }}>+ Registrar comida</button>
+        <button type="button" className="ath-food-secondary-action" onClick={() => setMostrarComidasDia(v => !v)} aria-expanded={mostrarComidasDia}>{mostrarComidasDia ? 'Ocultar comidas de hoy' : 'Ver comidas de hoy'}</button>
+        {mostrarComidasDia && <div className="ath-food-today-list">{registros.filter(r => r.fecha === fechaLocal()).length === 0 ? <p>Aún no registras comidas hoy.</p> : registros.filter(r => r.fecha === fechaLocal()).map(r => <div key={r.id} className="ath-food-today-item"><div><strong>{r.tipo_comida}</strong><span>{mostrar(r.calorias)} kcal</span></div><button type="button" onClick={() => { editar(r); }}>Editar</button></div>)}</div>}
+      </div>
+      {mostrarFormulario && createPortal(<div className="ath-food ath-food-sheet-root">
+        <div className="ath-food-sheet-backdrop" onMouseDown={e => { if (e.target === e.currentTarget) cerrarRegistro(); }} aria-hidden="true" />
+        <section ref={panelRef} className="ath-food-sheet" role="dialog" aria-modal="true" aria-labelledby="ath-food-sheet-title">
+          <div className="ath-food-sheet-handle" aria-hidden="true" />
+          <div className="ath-food-sheet-header">
+            <div><span className="ath-food-daily-eyebrow">MI ALIMENTACIÓN</span><h2 id="ath-food-sheet-title">{editandoId ? 'Editar comida' : 'Registrar comida'}</h2><p>Fotografía tu plato o agrega alimentos manualmente.</p></div>
+            <button ref={cerrarRef} type="button" className="ath-food-sheet-close" onClick={cerrarRegistro} aria-label="Cerrar registro" disabled={guardando || analizando}>✕</button>
+          </div>
+          <div className="ath-food-sheet-scroll">
       <header className="ath-food-hero">
         <span className="ath-food-kicker">NUTRICIÓN PERSONAL</span>
         
@@ -364,8 +428,14 @@ export default function MiAlimentacion() {
           <button type="button" className="ath-food-add" onClick={nuevoRegistro}>Nuevo registro</button>
         </div>
       </div>
+          </div>
+        </section>
+      </div>, document.body)}
+      </>}
+      {pestana === 'progreso'  && <>
+      <div className="ath-food-progress-intro"><span className="ath-food-daily-eyebrow">HISTORIAL PERSONAL</span><h2>Mi progreso alimentario</h2><p>Consulta tus registros por fecha. Los valores son estimaciones, no mediciones clínicas.</p></div>
       <div className="ath-food-panel ath-food-history">
-        <div className="ath-food-history-heading"><div><h3>4. Mi historial</h3><p>Solo tú puedes consultar tus comidas guardadas.</p></div><button type="button" className="ath-food-link" onClick={cargarHistorial} disabled={cargando}>Actualizar</button></div>
+        <div className="ath-food-history-heading"><div><h3>Historial de comidas</h3><p>Solo tú puedes consultar tus comidas guardadas.</p></div><button type="button" className="ath-food-link" onClick={cargarHistorial} disabled={cargando}>Actualizar</button></div>
         <div className="ath-food-history-filter"><label>Consultar fecha<input type="date" value={fecha} onChange={e => setFecha(e.target.value)} /></label><span>{registrosFecha.length} comida(s) guardada(s)</span></div>
         <div className="ath-food-day-summary">
           <strong>Resumen del {fecha.split('-').reverse().join('/')}</strong>
@@ -376,11 +446,12 @@ export default function MiAlimentacion() {
           {registrosFecha.map(r => <article className="ath-food-history-item" key={r.id}>
             <div><strong>{r.tipo_comida}</strong>{r.nota && <p>{r.nota}</p>}<p>{Array.isArray(r.alimentos) ? r.alimentos.map(a => a.nombre).join(', ') : ''}</p></div>
             <div className="ath-food-history-meta"><strong>{mostrar(r.calorias)} kcal</strong><small>P {mostrar(r.proteinas_g)} g · C {mostrar(r.carbohidratos_g)} g · G {mostrar(r.grasas_g)} g</small></div>
-            <div className="ath-food-history-controls"><button type="button" className="ath-food-link" onClick={() => editar(r)}>Editar</button><button type="button" className="ath-food-link ath-food-danger" disabled={eliminando === r.id} onClick={() => eliminar(r)}>{eliminando === r.id ? 'Eliminando...' : 'Eliminar'}</button></div>
+            <div className="ath-food-history-controls"><button type="button" className="ath-food-link" onClick={() => { editar(r); setPestana('dia'); }}>Editar</button><button type="button" className="ath-food-link ath-food-danger" disabled={eliminando === r.id} onClick={() => eliminar(r)}>{eliminando === r.id ? 'Eliminando...' : 'Eliminar'}</button></div>
           </article>)}
         </div>}
         {registros.length >= 300 && <p className="ath-food-footnote">Se muestran los 300 registros más recientes. Los anteriores permanecen guardados.</p>}
       </div>
+      </>}
     </section>
   );
 }

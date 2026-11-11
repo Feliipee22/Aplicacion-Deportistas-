@@ -235,8 +235,9 @@ function mensajeError(error) {
   return 'No se pudo completar la acción. Revisa tu conexión e inténtalo nuevamente.';
 }
 
-export default function AthletixMatch({ perfil }) {
+export default function AthletixMatch({ perfil, partidoDestacadoId = null }) {
   const [pestana, setPestana] = useState('mapa');
+  useEffect(() => { if (partidoDestacadoId != null) setPestana('partidos'); }, [partidoDestacadoId]);
   const [zona, setZona] = useState(ZONA_INICIAL);
   const [ciudadElegida, setCiudadElegida] = useState('santiago');
   const [ciudadLibre, setCiudadLibre] = useState('');
@@ -403,8 +404,32 @@ export default function AthletixMatch({ perfil }) {
   // Feed comunitario independiente del recinto seleccionado.
   const [publicaciones, setPublicaciones] = useState([]);
   const [autoresMuro, setAutoresMuro] = useState({});
+  const [apodo, setApodo] = useState('');
+  const [editandoApodo, setEditandoApodo] = useState(false);
+  const [guardandoApodo, setGuardandoApodo] = useState(false);
+  const [mensajeApodo, setMensajeApodo] = useState('');
+  const guardarApodo = async (e) => {
+    e.preventDefault();
+    const valor = apodo.trim();
+    if (valor && !/^[\p{L}\p{N}_.-]{3,24}$/u.test(valor)) {
+      setMensajeApodo('Usa entre 3 y 24 caracteres: letras, números, _, punto o guion.');
+      return;
+    }
+    setGuardandoApodo(true);
+    setMensajeApodo('');
+    const { error } = await supabase.rpc('comunidad_guardar_apodo', { nuevo_apodo: valor || null });
+    setGuardandoApodo(false);
+    if (error) {
+      setMensajeApodo(error.message?.includes('duplicate key') ? 'Ese apodo ya está ocupado.' : `No se pudo guardar: ${error.message}`);
+      return;
+    }
+    setEditandoApodo(false);
+    setMensajeApodo('Apodo actualizado.');
+    await Promise.all([cargarMuro(), cargarComentarios()]);
+  };
   const [lugarPublicacion, setLugarPublicacion] = useState('');
   const [mostrarPublicacion, setMostrarPublicacion] = useState(false);
+  const [mostrarUbicacionPublicacion, setMostrarUbicacionPublicacion] = useState(true);
   const [cargandoMuro, setCargandoMuro] = useState(false);
   const [enviandoMuro, setEnviandoMuro] = useState(false);
   const [errorMuro, setErrorMuro] = useState('');
@@ -472,8 +497,8 @@ export default function AthletixMatch({ perfil }) {
       setPublicaciones(data || []);
       const ids = [...new Set((data || []).map(m => m.usuario_id).filter(Boolean))];
       if (ids.length) {
-        const { data: usuariosMuro, error: errorAutores } = await supabase.from('usuarios')
-          .select('id, nombre, rol_id').in('id', ids);
+        const { data: usuariosMuro, error: errorAutores } = await supabase.from('perfiles_publicos')
+          .select('id, nombre, rol_id, apodo_publico').in('id', ids);
         if (errorAutores) {
           console.warn('Athletix Match: perfiles de autores no disponibles', errorAutores);
           setAutoresMuro({});
@@ -486,7 +511,7 @@ export default function AthletixMatch({ perfil }) {
             if (!errorRoles) nombresRoles = Object.fromEntries((rolesMuro || []).map(r => [r.id, r.nombre]));
           }
           setAutoresMuro(Object.fromEntries((usuariosMuro || []).map(u => [u.id, {
-            nombre: u.nombre,
+            nombre: u.apodo_publico || u.nombre,
             rol: nombresRoles[u.rol_id] || ({ 1: 'Administrador', 2: 'Entrenador', 3: 'Deportista' }[u.rol_id] || 'Miembro'),
           }])));
         }
@@ -508,9 +533,9 @@ export default function AthletixMatch({ perfil }) {
     setComentarios(data || []);
     const ids = [...new Set((data || []).map(c => c.usuario_id).filter(Boolean))];
     if (ids.length) {
-      const { data: users } = await supabase.from('usuarios').select('id, nombre, rol_id').in('id', ids);
+      const { data: users } = await supabase.from('perfiles_publicos').select('id, nombre, rol_id, apodo_publico').in('id', ids);
       if (users) setAutoresMuro(prev => ({ ...prev, ...Object.fromEntries(users.map(u => [u.id, {
-        nombre: u.nombre, rol: ({ 1: 'Administrador', 2: 'Entrenador', 3: 'Deportista' })[u.rol_id] || 'Miembro',
+        nombre: u.apodo_publico || u.nombre, rol: ({ 1: 'Administrador', 2: 'Entrenador', 3: 'Deportista' })[u.rol_id] || 'Miembro',
       }])) }));
     }
   }, []);
@@ -677,7 +702,7 @@ export default function AthletixMatch({ perfil }) {
               const propio = p.organizador_id === perfil.id;
               const ocupados = Number(p.jugadores_actuales) || 0;
               const capacidad = Number(p.capacidad_maxima) || 0;
-              return <article className="match-event" key={p.id}>
+              return <article className={`match-event ${String(p.id) === String(partidoDestacadoId) ? 'match-event-destacado' : ''}`} key={p.id}>
                 <div className="match-event-main"><div className="match-event-title"><strong>{p.deporte}</strong><span className="match-event-status">{propio ? 'Organizas' : inscrito ? 'Inscrito' : ocupados >= capacidad ? 'Completo' : 'Disponible'}</span></div>{mostrarLugar && <span><Icono tipo="ubicacion" size={15}/>{lugaresGuardados.find((l) => l.id_db === p.lugar_id)?.nombre || "Recinto deportivo"}</span>}
                   <span><Icono tipo="calendario" size={15}/>{formatearFecha(p.fecha_hora)}</span>
                   <span><Icono tipo="personas" size={15}/>{ocupados}/{capacidad} participantes · {Math.max(0, capacidad - ocupados)} cupos disponibles</span>
@@ -860,6 +885,31 @@ export default function AthletixMatch({ perfil }) {
         <button type="button" className="match-btn match-btn-primary match-feed-create" onClick={() => { setMostrarPublicacion(true); setErrorMuro(''); }} disabled={mostrarPublicacion}>+ Crear publicación</button>
         {mostrarPublicacion && <form className="match-community-form match-feed-compose" onSubmit={publicarMensaje}>
           <div className="match-compose-heading"><strong>Nueva publicación</strong><button type="button" className="match-compose-close" onClick={() => setMostrarPublicacion(false)}>Cerrar</button></div>
+          <div className="match-compose-profile">
+            <span className="match-compose-avatar" aria-hidden="true">{(autoresMuro[perfil.id]?.nombre || perfil.nombre || 'A').trim().charAt(0).toUpperCase()}</span>
+            <div className="match-compose-profile-info"><strong>{autoresMuro[perfil.id]?.nombre || perfil.nombre || 'Miembro'}</strong><small>Publicando en Comunidad Athletix</small></div>
+            <button type="button" className="match-compose-edit-name" aria-label="Cambiar apodo público" title="Cambiar apodo público" onClick={async () => {
+              if (!editandoApodo) {
+                const { data } = await supabase.from('perfiles_publicos').select('apodo_publico').eq('id', perfil.id).maybeSingle();
+                setApodo(data?.apodo_publico || '');
+              }
+              setEditandoApodo(!editandoApodo); setMensajeApodo('');
+            }}>{editandoApodo ? 'Cancelar' : '✎ Editar'}</button>
+          </div>
+          {editandoApodo && <div className="match-compose-nickname">
+            <label htmlFor="match-apodo">Apodo público (opcional)</label>
+            <input id="match-apodo" value={apodo} onChange={e => setApodo(e.target.value)} maxLength={24} placeholder="Ej. Catta22" />
+            <small>Si lo dejas vacío, se mostrará tu nombre registrado.</small>
+            <button type="button" className="match-btn match-btn-secondary" onClick={guardarApodo} disabled={guardandoApodo}>{guardandoApodo ? 'Guardando...' : 'Guardar apodo'}</button>
+          </div>}
+          {mensajeApodo && <p className="match-compose-feedback" role="status">{mensajeApodo}</p>}
+          <label className="match-compose-message-label" htmlFor="match-mensaje">¿Qué quieres compartir?</label>
+          <textarea id="match-mensaje" value={mensajeNuevo} maxLength={500} rows={4} onChange={e => setMensajeNuevo(e.target.value)} placeholder="¿Quién se anima a entrenar o jugar este fin de semana?" required />
+          <div className="match-compose-tools">
+            <button type="button" className="match-compose-location-toggle" aria-expanded={mostrarUbicacionPublicacion} onClick={() => setMostrarUbicacionPublicacion(!mostrarUbicacionPublicacion)}>{mostrarUbicacionPublicacion ? '⌖ Ocultar ubicación' : '⌖ Agregar ubicación'} <span>{mostrarUbicacionPublicacion ? '−' : '+'}</span></button>
+            <span className="match-compose-count">{mensajeNuevo.length}/500</span>
+          </div>
+          {mostrarUbicacionPublicacion && <div className="match-compose-location-fields">
           <label htmlFor="match-ciudad-publicacion">Ciudad o comuna de la publicación</label>
           <input id="match-ciudad-publicacion" autoComplete="off" value={ciudadPublicacion}
             onChange={e => { setCiudadPublicacion(e.target.value); setCiudadElegidaPublicacion(null); setUbicacionElegida(null); setBusquedaRecintoPublicacion(''); }}
@@ -884,14 +934,13 @@ export default function AthletixMatch({ perfil }) {
           {ubicacionElegida && <div className="match-location-picked"><span>✓ {ubicacionElegida.display_name}</span><button type="button" onClick={() => { setUbicacionElegida(null); setBusquedaRecintoPublicacion(''); }}>Quitar</button></div>}
           {!busquedaRecintoPublicacion && <small className="match-location-note">Puedes publicar sin seleccionar un recinto.</small>}
           {errorUbicacion && <p className="match-error" role="alert">{errorUbicacion}</p>}
-          <label htmlFor="match-mensaje">Tu publicación</label>
-          <textarea id="match-mensaje" value={mensajeNuevo} maxLength={500} rows={4} onChange={e => setMensajeNuevo(e.target.value)} placeholder="¿Alguien quiere entrenar o jugar este fin de semana?" required />
-          <div className="match-community-actions"><small>{mensajeNuevo.length}/500</small><button type="submit" className="match-btn match-btn-primary" disabled={enviandoMuro || !mensajeNuevo.trim() || !ciudadElegidaPublicacion || (Boolean(busquedaRecintoPublicacion.trim()) && !ubicacionElegida)}>{enviandoMuro ? 'Publicando...' : 'Publicar'}</button></div>
+          </div>}
+          <div className="match-community-actions match-compose-submit"><small>{!ciudadElegidaPublicacion ? 'Selecciona una comuna para publicar' : `Publicación en ${ciudadPublicacion}`}</small><button type="submit" className="match-btn match-btn-primary" disabled={enviandoMuro || !mensajeNuevo.trim() || !ciudadElegidaPublicacion || (Boolean(busquedaRecintoPublicacion.trim()) && !ubicacionElegida)}>{enviandoMuro ? 'Publicando...' : 'Publicar ahora'}</button></div>
         </form>}
         {errorMuro && <p className="match-error" role="alert">{errorMuro}</p>}
         {cargandoMuro ? <p className="match-my-empty">Cargando publicaciones...</p> : publicacionesVisibles.length === 0 ? <p className="match-my-empty">No hay publicaciones con estos filtros. ¡Inicia una conversación!</p> :
           <div className="match-feed-list">{publicacionesVisibles.map(m => <article className="match-feed-card" key={m.id}>
-            <div className="match-feed-meta"><div className="match-feed-author"><strong>{m.usuario_id === perfil.id ? 'Tú' : (autoresMuro[m.usuario_id]?.nombre || 'Miembro de Athletix')}</strong>
+            <div className="match-feed-meta"><div className="match-feed-author"><strong>{(autoresMuro[m.usuario_id]?.nombre || (m.usuario_id === perfil.id ? 'Tú' : 'Miembro de Athletix'))}</strong>
               <span className="match-feed-role">{autoresMuro[m.usuario_id]?.rol || 'Miembro'}</span></div><time dateTime={m.creado_en}>{formatearFecha(m.creado_en)}</time></div>
             <span className="match-feed-place match-feed-city">⌖ {m.ciudad || 'Chile'}</span>
             {m.lugar_nombre && m.lugar_latitud != null && m.lugar_longitud != null && <a className="match-feed-place" href={`https://www.openstreetmap.org/?mlat=${encodeURIComponent(m.lugar_latitud)}&mlon=${encodeURIComponent(m.lugar_longitud)}#map=16/${encodeURIComponent(m.lugar_latitud)}/${encodeURIComponent(m.lugar_longitud)}`} target="_blank" rel="noopener noreferrer">⌖ {m.lugar_nombre} · Ver mapa</a>}
@@ -903,7 +952,7 @@ export default function AthletixMatch({ perfil }) {
             </button>
             {hiloAbierto === m.id && <div className="match-comments">
               {comentarios.filter(c => c.publicacion_id === m.id).map(c => <div className="match-comment" key={c.id} style={{ marginLeft: c.respuesta_a ? 14 : 0 }}>
-                <strong>{c.usuario_id === perfil.id ? 'Tú' : (autoresMuro[c.usuario_id]?.nombre || 'Miembro')}</strong>
+                <strong>{(autoresMuro[c.usuario_id]?.nombre || (c.usuario_id === perfil.id ? 'Tú' : 'Miembro'))}</strong>
                 {c.respuesta_a && <small> · Respuesta</small>}
                 {editarMuro?.tipo === 'comentario' && editarMuro.id === c.id ? <div className="match-inline-editor"><textarea value={textoEdicion} maxLength={500} onChange={e => setTextoEdicion(e.target.value)} aria-label="Editar comentario"/><div className="match-manage-actions"><button type="button" onClick={guardarEdicionMuro} disabled={procesandoMuro || !textoEdicion.trim()}>Guardar</button><button type="button" onClick={() => setEditarMuro(null)}>Cancelar</button></div></div> : <p>{c.mensaje}</p>}
                 {puedeGestionar(c.usuario_id) && <div className="match-manage-actions">{puedeEditar(c.usuario_id) && <button type="button" onClick={() => { setEditarMuro({ tipo: 'comentario', id: c.id }); setTextoEdicion(c.mensaje); setErrorGestion(''); }}>Editar</button>}<button type="button" className="match-delete-action" onClick={() => { setAccionMuro({ tipo: 'comentario', id: c.id }); setErrorGestion(''); }}>Eliminar</button></div>}
@@ -920,7 +969,10 @@ export default function AthletixMatch({ perfil }) {
       </section>}
       {pestana === 'partidos' && <section className="match-tab-panel">
         <div className="match-tab-heading"><div><h3>Próximos encuentros</h3><p>Convocatorias disponibles en {zona.nombre}.</p></div><button type="button" className="match-btn match-btn-secondary" disabled={cargandoPartidos} onClick={cargarPartidos}>Actualizar</button></div>
-        {renderEventos(partidosDisponibles, true)}
+        {partidoDestacadoId != null && partidos.some(p => String(p.id) === String(partidoDestacadoId)) && (
+          <div className="match-linked-event"><strong>Partido seleccionado desde Avisos</strong>{renderEventos(partidos.filter(p => String(p.id) === String(partidoDestacadoId)), true)}</div>
+        )}
+        {renderEventos(partidosDisponibles.filter(p => String(p.id) !== String(partidoDestacadoId)), true)}
         <p className="match-help">¿Quieres organizar uno? Ve a Mapa, selecciona un recinto y toca «Crear convocatoria».</p>
       </section>}
       {pestana === 'mis' && <section className="match-tab-panel">
