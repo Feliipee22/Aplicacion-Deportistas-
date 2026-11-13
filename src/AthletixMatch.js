@@ -476,9 +476,11 @@ export default function AthletixMatch({ perfil, partidoDestacadoId = null }) {
     if (!accionMuro || procesandoMuro) return;
     setProcesandoMuro(true); setErrorGestion('');
     const tabla = accionMuro.tipo === 'publicacion' ? 'muro_comunidad' : 'muro_comentarios';
-    const { error } = await supabase.from(tabla).delete().eq('id', accionMuro.id);
+    const { error } = esAdministradorMuro
+      ? await supabase.rpc('ath_admin_moderar_contenido', { p_tipo: accionMuro.tipo, p_id: String(accionMuro.id) })
+      : await supabase.from(tabla).delete().eq('id', accionMuro.id).eq('usuario_id', perfil.id);
     setProcesandoMuro(false);
-    if (error) { setErrorGestion('No se pudo eliminar. Comprueba tus permisos.'); return; }
+    if (error) { setErrorGestion('No se pudo eliminar: ' + error.message); return; }
     setAccionMuro(null); setEditarMuro(null);
     await Promise.all([cargarMuro(), cargarComentarios()]);
   };
@@ -700,6 +702,7 @@ export default function AthletixMatch({ perfil, partidoDestacadoId = null }) {
     return <div className="match-events">{lista.map((p) => {
               const inscrito = inscripciones.includes(p.id);
               const propio = p.organizador_id === perfil.id;
+              const puedeCancelar = propio || esAdministradorMuro;
               const ocupados = Number(p.jugadores_actuales) || 0;
               const capacidad = Number(p.capacidad_maxima) || 0;
               return <article className={`match-event ${String(p.id) === String(partidoDestacadoId) ? 'match-event-destacado' : ''}`} key={p.id}>
@@ -708,9 +711,9 @@ export default function AthletixMatch({ perfil, partidoDestacadoId = null }) {
                   <span><Icono tipo="personas" size={15}/>{ocupados}/{capacidad} participantes · {Math.max(0, capacidad - ocupados)} cupos disponibles</span>
                 </div>
                 <div className="match-event-actions">
-                  {propio ? (
+                  {puedeCancelar ? (
                     <button type="button" className="match-btn match-btn-secondary" disabled={guardando}
-                      onClick={() => setCancelacionPendiente(p.id)}>Cancelar</button>
+                      onClick={() => setCancelacionPendiente(p.id)}>{propio ? 'Cancelar mi encuentro' : 'Retirar encuentro'}</button>
                   ) : (
                     <button type="button" className="match-btn match-btn-primary" disabled={guardando || (!inscrito && ocupados >= capacidad)}
                       onClick={() => ejecutarAccion(inscrito ? 'match_salir_partido' : 'match_unirse_partido', p.id,
@@ -986,10 +989,10 @@ export default function AthletixMatch({ perfil, partidoDestacadoId = null }) {
         <div className="match-modal-backdrop" role="presentation" onMouseDown={(e) => { if (e.target === e.currentTarget && !guardando) setCancelacionPendiente(null); }}>
           <div className="match-modal match-confirm-modal" role="alertdialog" aria-modal="true" aria-labelledby="match-cancel-title" aria-describedby="match-cancel-description">
             <h3 id="match-cancel-title">¿Cancelar convocatoria?</h3>
-            <p id="match-cancel-description">Se eliminará el encuentro y las inscripciones asociadas. Esta acción no se puede deshacer.</p>
+            <p id="match-cancel-description">Se retirará el encuentro y sus inscripciones. Esta acción no se puede deshacer y, si eres administrador, quedará registrada.</p>
             <div className="match-confirm-actions">
               <button type="button" className="match-btn match-btn-secondary" disabled={guardando} onClick={() => setCancelacionPendiente(null)}>Volver</button>
-              <button type="button" className="match-btn match-btn-danger" disabled={guardando} onClick={() => ejecutarAccion('match_cancelar_partido', cancelacionPendiente, 'Convocatoria cancelada.')}>{guardando ? 'Cancelando...' : 'Sí, cancelar'}</button>
+              <button type="button" className="match-btn match-btn-danger" disabled={guardando} onClick={() => ejecutarAccion(esAdministradorMuro ? 'ath_admin_cancelar_partido' : 'match_cancelar_partido', cancelacionPendiente, 'Convocatoria cancelada.')}>{guardando ? 'Cancelando...' : 'Sí, cancelar'}</button>
             </div>
           </div>
         </div>

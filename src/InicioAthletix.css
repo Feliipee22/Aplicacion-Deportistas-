@@ -1,0 +1,21 @@
+.ath-home{display:grid;gap:20px;min-width:0}.ath-home-welcome{padding:24px;border-radius:20px;background:#152638;color:white}.ath-home-welcome span,.ath-home-panel>span{color:#b9ee78;font-size:12px;font-weight:800;letter-spacing:2px}.ath-home-welcome h2{font-size:clamp(26px,5vw,38px);margin:12px 0}.ath-home-welcome p{color:#d3deea;margin:0}.ath-home-panel{background:linear-gradient(120deg,#1b3447,#223b4c);color:white;padding:24px;border-radius:18px;min-width:0}.ath-home-panel h3{font-size:23px;margin:12px 0}.ath-home-panel p{color:#d9e3ea}.ath-home-panel button{border:0;background:#c2f47b;color:#172435;padding:11px 18px;border-radius:11px;font-weight:800;cursor:pointer}.ath-home-stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.ath-home-stats button{min-width:0;background:white;border:1px solid #e0e7ed;border-radius:16px;text-align:left;padding:20px;display:grid;gap:8px;cursor:pointer}.ath-home-stats strong{font-size:clamp(26px,5vw,38px);color:#162638}.ath-home-stats span{color:#667587;font-size:14px}.ath-home-activity{background:#fff;border:1px solid #e0e7ed;padding:18px;border-radius:16px}.ath-home-activity p{color:#536273}.ath-home>small{color:#63758a}@media(max-width:390px){.ath-home-stats button{padding:14px}.ath-home-welcome,.ath-home-panel{padding:18px}}
+
+/* v34 · Inicio de administración: diseño adaptable y accesos reales */
+.ath-admin-hero{background:linear-gradient(125deg,#142638 0%,#1b3e43 100%);border-radius:20px;padding:clamp(20px,4vw,34px);color:#fff;display:flex;justify-content:space-between;align-items:end;gap:24px;flex-wrap:wrap;min-width:0}
+.ath-admin-eyebrow{display:block;color:#c2f47b;font-size:11px;font-weight:800;letter-spacing:1.6px}
+.ath-admin-hero h3{font-size:clamp(23px,4vw,34px);line-height:1.12;margin:12px 0;max-width:440px}
+.ath-admin-hero p{color:#d0e0e2;margin:0;max-width:440px;line-height:1.55}
+.ath-admin-hero button{background:#baf47a;color:#142638;border:0;border-radius:12px;padding:14px 18px;font-weight:800;cursor:pointer;min-height:48px}
+.ath-admin-section-title h3{margin:0 0 5px;font-size:20px;color:#172638}.ath-admin-section-title p{margin:0;color:#647487;font-size:14px}
+.ath-admin-links{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.ath-admin-links button{display:flex;align-items:center;gap:14px;text-align:left;min-width:0;min-height:94px;padding:16px;border:1px solid #dbe5e9;border-radius:16px;background:#fff;color:#172638;cursor:pointer;transition:box-shadow .15s,border-color .15s}
+.ath-admin-links button:hover,.ath-admin-links button:focus-visible{border-color:#7fae79;box-shadow:0 5px 20px #15263813}
+.ath-admin-link-icon{display:grid;place-items:center;flex:0 0 42px;height:42px;border-radius:12px;background:#edf5ee;color:#286b5a;font-size:23px}
+.ath-admin-links button>span:nth-child(2){display:grid;gap:5px;min-width:0;flex:1}.ath-admin-links strong{font-size:16px}.ath-admin-links small{font-size:12px;line-height:1.4;color:#667789}.ath-admin-chevron{color:#50736a;font-size:20px}
+.ath-admin-note{background:#eef4f1;border:1px solid #d9e9df;padding:18px 20px;border-radius:16px}.ath-admin-note strong{color:#173f39}.ath-admin-note p{margin:6px 0 0;color:#536c68;font-size:13px;line-height:1.5}
+@media(max-width:650px){.ath-admin-links{grid-template-columns:1fr}.ath-admin-links button{min-height:76px}.ath-admin-hero{align-items:stretch}.ath-admin-hero button{width:100%}}
+
+/* v38: accesos administrativos táctiles */
+.ath-admin-links button{min-height:76px;text-align:left}
+.ath-admin-links button:focus-visible,.ath-admin-hero button:focus-visible{outline:3px solid #76ba48;outline-offset:3px}
+@media(max-width:650px){.ath-admin-links{grid-template-columns:minmax(0,1fr)}.ath-admin-links button{width:100%;min-width:0}.ath-admin-link-icon{flex-shrink:0}}

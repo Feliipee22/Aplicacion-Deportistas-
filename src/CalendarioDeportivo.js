@@ -258,17 +258,18 @@ function mensajeError(error, contexto) {
   return `${contexto}: ${error?.message || 'Ocurrió un error inesperado.'}`;
 }
 
-export default function CalendarioDeportivo({ perfil }) {
+export default function CalendarioDeportivo({ perfil, fechaInicial = null }) {
   const rolId = Number(perfil.rol_id);
   const administrador = rolId === 1;
   const entrenador = rolId === 2;
   const puedeGestionar = administrador || entrenador;
   const [vista, setVista] = useState('mes');
-  const [referencia, setReferencia] = useState(() => new Date());
-  const [diaElegido, setDiaElegido] = useState(() => fechaClave(new Date()));
+  const [referencia, setReferencia] = useState(() => fechaInicial ? fechaDesdeClave(fechaInicial) : new Date());
+  const [diaElegido, setDiaElegido] = useState(() => fechaInicial || fechaClave(new Date()));
   const [saltoAbierto, setSaltoAbierto] = useState(false);
   const [fechaSalto, setFechaSalto] = useState(() => fechaClave(new Date()));
   const [actividades, setActividades] = useState([]);
+  const [sesionesProgramadas, setSesionesProgramadas] = useState([]);
   const [equipos, setEquipos] = useState([]);
   const [cargando, setCargando] = useState(true);
   const [errorCarga, setErrorCarga] = useState('');
@@ -285,6 +286,11 @@ export default function CalendarioDeportivo({ perfil }) {
   const [guardando, setGuardando] = useState(false);
   const [confirmandoCancelacion, setConfirmandoCancelacion] = useState(null);
   const [cancelando, setCancelando] = useState(false);
+  const [gestionSesion, setGestionSesion] = useState(null);
+  const [nuevaFechaSesion, setNuevaFechaSesion] = useState('');
+  const [nuevaHoraSesion, setNuevaHoraSesion] = useState('');
+  const [guardandoSesion, setGuardandoSesion] = useState(false);
+  const [errorSesion, setErrorSesion] = useState('');
   const solicitudActual = useRef(0);
 
   const dias = useMemo(() => fechasVisibles(referencia, vista), [referencia, vista]);
@@ -297,6 +303,24 @@ export default function CalendarioDeportivo({ perfil }) {
     setErrorCarga('');
     try {
       if (!perfil.id) throw new Error('No se pudo identificar la sesión actual.');
+      // El calendario personal no depende de las antiguas tablas de equipos.
+      // Las vistas de entrenador y administrador conservan su flujo original.
+      if (!puedeGestionar) {
+        const { data: programadas, error: errorProgramadas } = await supabase
+          .from('entrenamientos_programados')
+          .select('id,plan_id,sesion_indice,fecha_programada,hora_programada,estado,planes_entrenamiento_ia(titulo,plan)')
+          .eq('usuario_id', perfil.id)
+          .gte('fecha_programada', primerDia)
+          .lte('fecha_programada', ultimoDia)
+          .order('fecha_programada', { ascending: true });
+        if (errorProgramadas) throw errorProgramadas;
+        if (solicitud !== solicitudActual.current) return;
+        setSesionesProgramadas(programadas || []);
+        setEquipos([]);
+        setActividades([]);
+        setActividadElegidaId(null);
+        return;
+      }
       let ids = [];
       if (!administrador) {
         const { data: membresias, error } = await supabase
@@ -332,6 +356,16 @@ export default function CalendarioDeportivo({ perfil }) {
             (item) => item.equipo_id == null || ids.includes(item.equipo_id)
           );
       if (solicitud !== solicitudActual.current) return;
+      const { data: programadas, error: errorProgramadas } = await supabase
+        .from('entrenamientos_programados')
+        .select('id,plan_id,sesion_indice,fecha_programada,hora_programada,estado,planes_entrenamiento_ia(titulo,plan)')
+        .eq('usuario_id', perfil.id)
+        .gte('fecha_programada', primerDia)
+        .lte('fecha_programada', ultimoDia)
+        .order('fecha_programada', { ascending: true });
+      if (errorProgramadas) throw errorProgramadas;
+      if (solicitud !== solicitudActual.current) return;
+      setSesionesProgramadas(programadas || []);
       setEquipos(respuestaEquipos.data || []);
       setActividades(visibles);
       setActividadElegidaId((anterior) =>
@@ -344,7 +378,7 @@ export default function CalendarioDeportivo({ perfil }) {
     } finally {
       if (solicitud === solicitudActual.current) setCargando(false);
     }
-  }, [perfil.id, administrador, entrenador, primerDia, ultimoDia]);
+  }, [perfil.id, administrador, entrenador, puedeGestionar, primerDia, ultimoDia]);
 
   useEffect(() => {
     cargarDatos();
@@ -366,7 +400,7 @@ export default function CalendarioDeportivo({ perfil }) {
     );
   };
 
-  const filtradas = actividades.filter((item) =>
+  const filtradas = (puedeGestionar ? actividades : []).filter((item) =>
     (filtroEquipo === 'TODOS' ||
       (filtroEquipo === 'GENERAL' ? item.equipo_id == null : String(item.equipo_id) === filtroEquipo)) &&
     (filtroTipo === 'TODOS' || item.tipo === filtroTipo)
@@ -524,6 +558,45 @@ export default function CalendarioDeportivo({ perfil }) {
     }
   };
 
+  const abrirGestionSesion = (sesion) => {
+    if (sesion.estado !== 'PENDIENTE') return;
+    setGestionSesion(sesion);
+    setNuevaFechaSesion(sesion.fecha_programada);
+    setNuevaHoraSesion(sesion.hora_programada?.slice(0, 5) || '18:00');
+    setErrorSesion('');
+  };
+
+  const guardarGestionSesion = async (accion) => {
+    if (!gestionSesion || gestionSesion.estado !== 'PENDIENTE' || guardandoSesion) return;
+    if (accion === 'reprogramar' && (!/^\d{4}-\d{2}-\d{2}$/.test(nuevaFechaSesion) || !/^\d{2}:\d{2}$/.test(nuevaHoraSesion))) {
+      setErrorSesion('Selecciona una fecha y hora válidas.');
+      return;
+    }
+    setGuardandoSesion(true);
+    setErrorSesion('');
+    try {
+      const cambios = accion === 'cancelar'
+        ? { estado: 'CANCELADO' }
+        : { fecha_programada: nuevaFechaSesion, hora_programada: nuevaHoraSesion };
+      const { data, error } = await supabase.from('entrenamientos_programados')
+        .update(cambios)
+        .eq('id', gestionSesion.id)
+        .eq('usuario_id', perfil.id)
+        .eq('estado', 'PENDIENTE')
+        .select('id,estado,fecha_programada,hora_programada');
+      if (error) throw error;
+      if (!data?.length) throw new Error('La sesión ya cambió de estado. Actualiza el calendario antes de intentarlo nuevamente.');
+      setGestionSesion(null);
+      setMensaje(accion === 'cancelar' ? 'Entrenamiento cancelado. Se conserva su registro en el calendario.' : 'Entrenamiento reprogramado correctamente.');
+      if (accion === 'reprogramar') irAFecha(fechaDesdeClave(nuevaFechaSesion));
+      setRevision(n => n + 1);
+    } catch (error) {
+      setErrorSesion(error?.code === '23505' ? 'Ya tienes esta sesión programada para esa fecha.' : mensajeError(error, 'No se pudo actualizar el entrenamiento'));
+    } finally {
+      setGuardandoSesion(false);
+    }
+  };
+
   const periodoTitulo = vista === 'mes'
     ? formatoMes(referencia)
     : `${formatoFechaCorta(dias[0])} — ${formatoFechaCorta(dias[6])}`;
@@ -535,10 +608,10 @@ export default function CalendarioDeportivo({ perfil }) {
           
           
           <p>{administrador
-            ? 'Organiza las actividades generales y de los equipos del club.'
+            ? 'Organiza las actividades y entrenamientos del club.'
             : entrenador
-              ? 'Programa entrenamientos y actividades para tus equipos asignados.'
-              : 'Consulta los entrenamientos, partidos y actividades de tus equipos.'}</p>
+              ? 'Consulta y organiza tus actividades deportivas.'
+              : 'Consulta tus entrenamientos programados y el historial de tus sesiones.'}</p>
         </div>
         <div className="ath-cal-top-actions">
           <button type="button" className="ath-cal-ghost" onClick={() => setRevision((valor) => valor + 1)} disabled={cargando || guardando}>Actualizar</button>
@@ -551,9 +624,9 @@ export default function CalendarioDeportivo({ perfil }) {
       {errorAccion && !formularioVisible && !confirmandoCancelacion && <div className="ath-cal-error" role="alert">{errorAccion}</div>}
 
       <div className="ath-cal-stats">
-        <div><span>Actividades del período</span><strong>{filtradas.length}</strong></div>
-        <div><span>Programadas o modificadas</span><strong>{cantidadProgramadas}</strong></div>
-        <div><span>Canceladas</span><strong>{cantidadCanceladas}</strong></div>
+        <div><span>Programados</span><strong>{sesionesProgramadas.filter(s => s.estado === 'PENDIENTE').length}</strong></div>
+        <div><span>Completados</span><strong>{sesionesProgramadas.filter(s => s.estado === 'COMPLETADO').length}</strong></div>
+        <div><span>Cancelados</span><strong>{sesionesProgramadas.filter(s => s.estado === 'CANCELADO').length}</strong></div>
       </div>
 
       <div className="ath-cal-toolbar">
@@ -577,21 +650,14 @@ export default function CalendarioDeportivo({ perfil }) {
           </button>
         </div>
         <div className="ath-cal-filters">
-          <label>
-            <span>Equipo</span>
-            <select value={filtroEquipo} onChange={(evento) => setFiltroEquipo(evento.target.value)}>
-              <option value="TODOS">Todos</option>
-              <option value="GENERAL">Actividades generales</option>
-              {equipos.map((equipo) => <option key={equipo.id} value={String(equipo.id)}>{equipo.nombre}{equipo.estado ? '' : ' (inactivo)'}</option>)}
-            </select>
-          </label>
-          <label>
+
+          {puedeGestionar && <label>
             <span>Tipo</span>
             <select value={filtroTipo} onChange={(evento) => setFiltroTipo(evento.target.value)}>
               <option value="TODOS">Todos</option>
               {TIPOS.map((tipo) => <option key={tipo} value={tipo}>{ETIQUETAS_TIPO[tipo]}</option>)}
             </select>
-          </label>
+          </label>}
           <div className="ath-cal-view" role="group" aria-label="Vista del calendario">
             <button type="button" className={vista === 'mes' ? 'active' : ''} aria-pressed={vista === 'mes'} onClick={() => setVista('mes')}>Mes</button>
             <button type="button" className={vista === 'semana' ? 'active' : ''} aria-pressed={vista === 'semana'} onClick={() => setVista('semana')}>Semana</button>
@@ -635,6 +701,7 @@ export default function CalendarioDeportivo({ perfil }) {
             {dias.map((dia) => {
               const clave = fechaClave(dia);
               const eventos = porDia.get(clave) || [];
+              const personales = sesionesProgramadas.filter(s => s.fecha_programada === clave);
               const fuera = vista === 'mes' && dia.getMonth() !== referencia.getMonth();
               return (
                 <button type="button" key={clave}
@@ -648,6 +715,7 @@ export default function CalendarioDeportivo({ perfil }) {
                         <span className="ath-cal-chip-time">{formatoHora(item.fecha_hora)}</span> {item.titulo}
                       </span>
                     ))}
+                    {personales.slice(0,2).map(s => <span key={s.id} className="ath-cal-chip ath-cal-personal-chip">{s.hora_programada?.slice(0,5) || '—'} · Sesión IA</span>)}
                     {eventos.length > (vista === 'semana' ? 4 : 2) && (
                       <span className="ath-cal-more">+{eventos.length - (vista === 'semana' ? 4 : 2)} más</span>
                     )}
@@ -663,9 +731,30 @@ export default function CalendarioDeportivo({ perfil }) {
           <div className="ath-cal-agenda-heading">
             <span>AGENDA DEL DÍA</span>
             <h3>{formatoFecha(fechaDesdeClave(diaElegido))}</h3>
-            <p>{delDia.length === 1 ? '1 actividad' : `${delDia.length} actividades`}</p>
+            <p>{sesionesProgramadas.filter(s => s.fecha_programada === diaElegido).length} entrenamientos programados en esta fecha</p>
           </div>
-          {delDia.length === 0 ? (
+          {sesionesProgramadas.filter(s => s.fecha_programada === diaElegido).map(s => (
+            <div key={s.id} className="ath-cal-personal-session">
+              <div className="ath-cal-personal-session-top"><strong>{s.planes_entrenamiento_ia?.plan?.sesiones?.[s.sesion_indice]?.titulo || s.planes_entrenamiento_ia?.plan?.sesiones?.[s.sesion_indice]?.dia || `Sesión ${s.sesion_indice + 1}`}</strong><span>{s.estado === 'COMPLETADO' ? 'Completado' : s.estado === 'CANCELADO' ? 'Cancelado' : 'Programado'}</span></div>
+              <small>{s.planes_entrenamiento_ia?.titulo || 'Plan personal'} · {s.hora_programada?.slice(0,5) || 'Sin hora'}</small>
+              {s.estado === 'PENDIENTE' && <div className="ath-cal-personal-actions">
+                <button type="button" className="ath-cal-start-session" onClick={() => window.dispatchEvent(new CustomEvent('athletix:navegar',{detail:{seccion:'rutinas',programacionId:s.id,planId:s.plan_id,sesionIndice:s.sesion_indice}}))}>▶ Iniciar entrenamiento</button>
+                <button type="button" className="ath-cal-manage-session" onClick={() => abrirGestionSesion(s)}>Cambiar o cancelar</button>
+              </div>}
+              {gestionSesion?.id === s.id && <div className="ath-cal-session-editor">
+                <strong>Gestionar entrenamiento</strong>
+                <label>Fecha<input type="date" value={nuevaFechaSesion} onChange={e => setNuevaFechaSesion(e.target.value)} disabled={guardandoSesion}/></label>
+                <label>Hora<input type="time" value={nuevaHoraSesion} onChange={e => setNuevaHoraSesion(e.target.value)} disabled={guardandoSesion}/></label>
+                {errorSesion && <p className="ath-cal-session-error" role="alert">{errorSesion}</p>}
+                <div className="ath-cal-session-editor-actions">
+                  <button type="button" className="ath-cal-save-session" disabled={guardandoSesion || (nuevaFechaSesion === s.fecha_programada && nuevaHoraSesion === (s.hora_programada?.slice(0,5) || '18:00'))} onClick={() => guardarGestionSesion('reprogramar')}>Guardar cambios</button>
+                  <button type="button" className="ath-cal-cancel-session" disabled={guardandoSesion} onClick={() => { if (window.confirm('¿Cancelar este entrenamiento programado? No se eliminará tu historial.')) guardarGestionSesion('cancelar'); }}>Cancelar sesión</button>
+                  <button type="button" className="ath-cal-close-session" disabled={guardandoSesion} onClick={() => setGestionSesion(null)}>Volver</button>
+                </div>
+              </div>}
+            </div>
+          ))}
+          {delDia.length === 0 && !sesionesProgramadas.some(s => s.fecha_programada === diaElegido) ? (
             <div className="ath-cal-empty">
               <div className="ath-cal-empty-icon" aria-hidden="true">◎</div>
               <strong>Sin actividades</strong>
@@ -683,7 +772,7 @@ export default function CalendarioDeportivo({ perfil }) {
                   <span className="ath-cal-agenda-item-text">
                     <strong>{item.titulo}</strong>
                     <small>{formatoHora(item.fecha_hora)}{item.fecha_fin ? ` – ${formatoHora(item.fecha_fin)}` : ''}</small>
-                    <small>{nombreEquipo(item.equipo_id)}</small>
+                    {puedeGestionar && <small>{nombreEquipo(item.equipo_id)}</small>}
                   </span>
                   <span className={`ath-cal-mini-status ${item.estado === 'CANCELADA' ? 'cancelled' : ''}`}>
                     {item.estado === 'CANCELADA' ? 'Cancelada' : '›'}
@@ -700,7 +789,7 @@ export default function CalendarioDeportivo({ perfil }) {
               </div>
               <h4>{actividadElegida.titulo}</h4>
               <dl>
-                <div><dt>Equipo</dt><dd>{nombreEquipo(actividadElegida.equipo_id)}</dd></div>
+                {puedeGestionar && <div><dt>Destino</dt><dd>{nombreEquipo(actividadElegida.equipo_id)}</dd></div>}
                 <div><dt>Inicio</dt><dd>{formatoFechaCorta(actividadElegida.fecha_hora)} · {formatoHora(actividadElegida.fecha_hora)}</dd></div>
                 {actividadElegida.fecha_fin && <div><dt>Término</dt><dd>{formatoFechaCorta(actividadElegida.fecha_fin)} · {formatoHora(actividadElegida.fecha_fin)}</dd></div>}
                 {actividadElegida.lugar && <div><dt>Lugar</dt><dd>{actividadElegida.lugar}</dd></div>}

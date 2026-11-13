@@ -149,7 +149,7 @@
  .match-hero { padding:13px 16px; }
  .match-hero h2 { font-size:20px; }
  .match-hero p { font-size:11px; }
- .match-tabs { position:sticky; top:0; z-index:500; }
+ .match-tabs { position:sticky; top:56px; z-index:5; }
  .match-tabs button { font-size:11px; }
  .match-location-intro span { display:none; }
  .match-location-panel { padding:11px; }
@@ -312,3 +312,8 @@
 @media(max-width:480px){.match-feed-compose{padding:12px}.match-compose-profile-info small{font-size:10px}.match-compose-edit-name{padding:7px 8px}}
 
 .match-linked-event{border:2px solid #95c95a;border-radius:16px;padding:12px;margin-bottom:16px;background:#f6fbea}.match-linked-event>strong{display:block;margin-bottom:10px;color:#244a27}.match-event-destacado{outline:2px solid #95c95a}
+
+/* Menú móvil siempre por encima de las pestañas de Athletix Match. */
+@media (max-width:850px) {
+  .match-tabs { top:56px; z-index:5; }
+}

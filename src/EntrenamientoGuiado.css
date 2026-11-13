@@ -1,0 +1,65 @@
+.eg-wrap{max-width:650px;margin:0 auto;padding:12px 12px 90px;color:#142536}.eg-wrap *{box-sizing:border-box}.eg-wrap button{min-height:46px;border:0;border-radius:13px;padding:11px 16px;background:#b6f473;color:#17283a;font:inherit;font-weight:700;cursor:pointer}.eg-wrap button:disabled{opacity:.48;cursor:not-allowed}.eg-wrap button:focus-visible{outline:3px solid #357dd2;outline-offset:2px}.eg-wrap .eg-outline,.eg-wrap .eg-back{background:#eef3f5;border:1px solid #d5e0e6}.eg-wrap .eg-text-button{background:transparent;color:#53677b;text-decoration:underline}.eg-top{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px;color:#6b798a;font-size:12px}.eg-top button{font-size:13px}.eg-progress{background:#fff;border:1px solid #e0e8e8;border-radius:15px;padding:14px;margin-bottom:12px}.eg-progress-label{display:flex;justify-content:space-between;gap:8px;font-size:13px}.eg-progress-label span{color:#5f7182}.eg-track{height:8px;background:#e7f0ea;border-radius:10px;overflow:hidden;margin-top:11px}.eg-track span{display:block;height:100%;background:#a5e96e;transition:width .25s}.eg-session-head{display:flex;justify-content:space-between;align-items:center;gap:12px;background:#17283a;color:white;border-radius:14px;padding:15px;margin-bottom:12px}.eg-session-head span{font-size:13px;max-width:60%;line-height:1.35}.eg-session-head strong{font-size:23px;letter-spacing:1px;font-variant-numeric:tabular-nums}.eg-current{background:white;border:1px solid #dce6e7;border-radius:18px;padding:18px;margin-bottom:12px}.eg-kicker{font-size:11px;color:#63804c;letter-spacing:.07em;font-weight:800}.eg-current h2{font-size:23px;line-height:1.2;margin:8px 0 16px;overflow-wrap:anywhere}.eg-series{display:flex;flex-direction:column;gap:5px;padding:12px;background:#f1f7ed;border-radius:12px}.eg-series strong{font-size:16px}.eg-series span{font-size:13px;color:#536675}.eg-instructions{font-size:14px;line-height:1.55;color:#465b6b;margin:14px 0}.eg-video-toggle{width:100%;background:#eff4f6!important;text-align:left;font-size:14px}.eg-video-player{margin-top:12px;max-width:100%;overflow:hidden}.eg-primary-action button{width:100%;min-height:58px;font-size:16px}.eg-primary-action p{font-size:12px;text-align:center;color:#677989;margin:8px 0 12px}.eg-rest-screen{border-radius:18px;background:#fff7e6;border:1px solid #e9d7a2;text-align:center;padding:22px 16px;margin-bottom:12px}.eg-rest-screen span{display:block;font-size:13px;color:#755d31}.eg-rest-screen strong{display:block;font-size:46px;font-variant-numeric:tabular-nums;margin:9px 0}.eg-rest-screen p{font-size:13px;color:#705d40}.eg-rest-screen button{background:#f1d17e}.eg-controls{display:flex;gap:8px;flex-wrap:wrap;justify-content:space-between;margin-top:10px}.eg-controls button:first-child{flex:1}.eg-start{background:#f0f7e9;padding:17px;border-radius:16px;margin-bottom:12px}.eg-start h2{font-size:19px;margin:0 0 7px}.eg-start p{font-size:13px;line-height:1.5;color:#546577}.eg-start button{width:100%}.eg-summary{text-align:center;background:white;border:1px solid #dce6e7;border-radius:20px;padding:22px 16px}.eg-summary h2{font-size:22px}.eg-summary-icon{display:grid;place-items:center;width:58px;height:58px;border-radius:50%;background:#dff5d4;color:#2b6738;font-size:29px;margin:0 auto}.eg-summary-time{font-size:34px;display:block;font-variant-numeric:tabular-nums}.eg-summary p{font-size:14px;line-height:1.5;color:#546779}.eg-summary button{width:100%;margin-top:10px}.eg-small{font-size:12px;line-height:1.5;color:#728091;margin-top:15px}.eg-bottom-actions{text-align:center;margin-top:16px}.eg-modal-backdrop{position:fixed;inset:0;z-index:10000;background:#0c1726a8;display:flex;align-items:center;justify-content:center;padding:18px}.eg-modal{width:min(100%,390px);border-radius:20px;padding:22px;background:#fff;box-shadow:0 20px 70px #0004}.eg-modal h3{margin:0 0 8px}.eg-modal p{font-size:14px;color:#536779;line-height:1.5}.eg-modal>div{display:flex;gap:8px;margin-top:18px}.eg-modal>div button{flex:1}@media(max-width:420px){.eg-wrap{padding:9px 8px 88px}.eg-current{padding:14px}.eg-current h2{font-size:21px}.eg-session-head strong{font-size:21px}.eg-controls{flex-direction:column}.eg-controls button{width:100%}}
+
+/* v8 · Vista de entrenamiento independiente y móvil */
+.eg-immersive{position:fixed!important;inset:0!important;z-index:9000!important;overflow-y:auto!important;overscroll-behavior:contain;background:#f4f7f9;max-width:none!important;width:100%!important;margin:0!important;padding:0 max(14px,env(safe-area-inset-right)) calc(116px + env(safe-area-inset-bottom)) max(14px,env(safe-area-inset-left))!important;display:flex;flex-direction:column;gap:0;-webkit-overflow-scrolling:touch}
+.eg-immersive>.eg-top{position:sticky;top:0;z-index:5;min-height:58px;margin:0 -14px 14px;padding:9px 16px;background:#132235;color:#fff;box-shadow:0 2px 12px #12253b19;font-size:13px}
+.eg-immersive>.eg-top .eg-back{background:#263d51;color:#fff;border:1px solid #496075;min-height:40px}
+.eg-immersive>.eg-top strong{font-size:14px}
+.eg-immersive .eg-progress{padding:11px 13px;margin-bottom:10px}
+.eg-immersive .eg-current{padding:15px;margin-bottom:10px}
+.eg-immersive .eg-current h2{font-size:clamp(20px,5.5vw,27px);margin:7px 0 12px}
+.eg-immersive .eg-session-head{padding:12px 14px;margin-bottom:10px}
+.eg-immersive .eg-instructions{margin:10px 0}
+.eg-immersive .eg-video-details{border-radius:12px;background:#eef3f5;margin-top:12px;overflow:hidden}
+.eg-immersive .eg-video-details>summary{padding:14px 15px;cursor:pointer;font-size:14px;font-weight:700;list-style:none}
+.eg-immersive .eg-video-details>summary::-webkit-details-marker{display:none}
+.eg-immersive .eg-video-details>summary:before{content:'▶';margin-right:9px}
+.eg-immersive .eg-video-details[open]>summary:before{content:'▾'}
+.eg-immersive .eg-video-player{padding:0 10px 12px;margin-top:0}
+.eg-immersive .eg-rest-screen{order:1;padding:24px 16px;margin-bottom:10px}
+.eg-immersive .eg-rest-screen strong{font-size:clamp(38px,11vw,58px)}
+.eg-immersive.eg-is-rest .eg-current{order:2}
+.eg-immersive.eg-is-rest .eg-controls{order:3}
+.eg-immersive.eg-is-rest .eg-bottom-actions{order:4}
+.eg-immersive.eg-is-rest>.eg-small{order:5}
+.eg-immersive .eg-primary-action{position:sticky;bottom:0;z-index:6;background:#f4f7f9;padding:10px 0 max(10px,env(safe-area-inset-bottom));margin-top:auto;box-shadow:0 -9px 18px #f4f7f9}
+.eg-immersive .eg-primary-action button{min-height:56px}
+.eg-immersive .eg-primary-action p{margin:5px 0 0}
+.eg-immersive .eg-controls{margin:10px 0 0}
+.eg-immersive .eg-summary{margin-top:4px}
+.eg-immersive .eg-bottom-actions{margin-top:10px}
+.eg-immersive .eg-modal-backdrop{z-index:9100}
+@media(max-width:420px){.eg-immersive{padding-left:12px!important;padding-right:12px!important}.eg-immersive>.eg-top{margin-left:-12px;margin-right:-12px}.eg-immersive .eg-controls{flex-direction:row}.eg-immersive .eg-controls button{width:auto}.eg-immersive .eg-controls button:first-child{flex:1}}
+
+/* v9 · Correcciones de viewport móvil y APK / WebView */
+.eg-immersive{
+  box-sizing:border-box!important;
+  height:100vh;height:100dvh;
+  min-height:0;max-height:100dvh;
+  inset:0!important;
+  overflow-x:hidden!important;overflow-y:auto!important;
+  padding:0 max(12px,env(safe-area-inset-right)) calc(24px + env(safe-area-inset-bottom)) max(12px,env(safe-area-inset-left))!important;
+  scrollbar-gutter:stable;
+}
+.eg-immersive *{min-width:0}
+.eg-immersive>.eg-top{
+  flex:0 0 auto;display:grid;grid-template-columns:minmax(68px,1fr) minmax(0,2fr) minmax(68px,1fr);
+  align-items:center;gap:6px;margin:0 -12px 12px;
+  padding:calc(9px + env(safe-area-inset-top)) 12px 9px;
+  min-height:calc(58px + env(safe-area-inset-top));
+}
+.eg-immersive>.eg-top strong{text-align:center;line-height:1.25;font-size:clamp(12px,3.6vw,14px)}
+.eg-immersive>.eg-top span{text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:11px}
+.eg-immersive>.eg-top .eg-back{padding:8px 10px;font-size:13px;white-space:nowrap}
+.eg-immersive .eg-progress,.eg-immersive .eg-summary,.eg-immersive .eg-current{width:100%;max-width:100%;flex-shrink:0}
+.eg-immersive .eg-summary{padding:20px 15px;margin-bottom:12px;overflow-wrap:anywhere}
+.eg-immersive .eg-summary h2{font-size:clamp(19px,5.5vw,23px);line-height:1.25;margin:14px 0}
+.eg-immersive .eg-summary-time{font-size:clamp(29px,8vw,38px)}
+.eg-immersive .eg-summary button{display:block;max-width:100%;border:0;border-radius:13px;min-height:52px;white-space:normal;line-height:1.3}
+.eg-immersive .eg-summary p{margin:12px 0;overflow-wrap:anywhere}
+.eg-immersive .eg-primary-action{position:sticky;bottom:0;flex-shrink:0;padding:10px 0 calc(10px + env(safe-area-inset-bottom));margin-top:0}
+.eg-immersive .eg-bottom-actions{padding-bottom:4px}
+.eg-immersive.eg-is-finished{justify-content:flex-start}
+.eg-immersive.eg-is-finished .eg-summary{flex:0 0 auto}
+.eg-immersive .eg-modal-backdrop{padding:calc(12px + env(safe-area-inset-top)) 12px calc(12px + env(safe-area-inset-bottom))}
+@media(max-width:360px){.eg-immersive>.eg-top{grid-template-columns:65px minmax(0,1fr) 62px}.eg-immersive>.eg-top strong{font-size:12px}.eg-immersive>.eg-top span{font-size:10px}.eg-immersive .eg-summary{padding:16px 12px}}

@@ -3,7 +3,8 @@ import React, { useEffect, useState } from 'react';
 import { supabase } from './supabase';
 import VideoEjercicio from './VideoEjercicio';
 
-export default function MisRutinas({ usuarioId, soloVideos = false }) {
+export default function MisRutinas({ usuarioId, soloVideos = false, programacionInicial = null }) {
+  const [seccion,setSeccion] = useState('ia');
   const [rutinas, setRutinas] = useState([]);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState('');
@@ -21,62 +22,26 @@ export default function MisRutinas({ usuarioId, soloVideos = false }) {
       setError('');
 
       try {
-        // 1. Consultar asignaciones individuales y equipos.
-        const [directas, membresias] = await Promise.all([
-          supabase
-            .from('rutina_usuario')
-            .select('rutina_id')
-            .eq('usuario_id', usuarioId)
-            .eq('activo', true),
+        // Consultar exclusivamente las asignaciones individuales activas.
+        // No depender de usuario_equipo ni rutina_equipo.
+        const { data: asignaciones, error: errorAsignaciones } = await supabase
+          .from('rutina_usuario')
+          .select('rutina_id')
+          .eq('usuario_id', usuarioId)
+          .eq('activo', true);
 
-          supabase
-            .from('usuario_equipo')
-            .select('equipo_id')
-            .eq('usuario_id', usuarioId)
-            .eq('funcion_en_equipo', 'DEPORTISTA')
-            .eq('activo', true),
-        ]);
+        if (errorAsignaciones) throw errorAsignaciones;
 
-        if (directas.error) throw directas.error;
-        if (membresias.error) throw membresias.error;
-
-        // 2. Consultar rutinas asignadas a sus equipos.
-        const equiposIds = (membresias.data || []).map(
-          (item) => item.equipo_id
-        );
-
-        let asignacionesEquipo = [];
-
-        if (equiposIds.length > 0) {
-          const resultado = await supabase
-            .from('rutina_equipo')
-            .select('rutina_id')
-            .in('equipo_id', equiposIds)
-            .eq('activo', true);
-
-          if (resultado.error) throw resultado.error;
-
-          asignacionesEquipo = resultado.data || [];
-        }
-
-        // 3. Unificar las asignaciones sin duplicar rutinas.
-        const rutinasIds = [
-          ...new Set([
-            ...(directas.data || []).map(
-              (item) => item.rutina_id
-            ),
-            ...asignacionesEquipo.map(
-              (item) => item.rutina_id
-            ),
-          ]),
-        ];
+        const rutinasIds = [...new Set(
+          (asignaciones || []).map((item) => item.rutina_id).filter((id) => id != null)
+        )];
 
         if (rutinasIds.length === 0) {
           if (activo) setRutinas([]);
           return;
         }
 
-        // 4. Consultar solamente rutinas activas.
+        // Consultar solamente rutinas activas.
         const { data, error: errorRutinas } = await supabase
           .from('rutinas')
           .select('id, nombre, descripcion, estado, fecha_creacion')
@@ -156,7 +121,12 @@ export default function MisRutinas({ usuarioId, soloVideos = false }) {
 
   return (
     <section className="ath-routines">
-      {!soloVideos && <EntrenadorIAPro />}
+      {!soloVideos && <nav className="ath-rutinas-tabs" aria-label="Tipos de entrenamiento">
+        <button type="button" className={seccion==='ia'?'active':''} onClick={()=>setSeccion('ia')}>Mis planes IA</button>
+        <button type="button" className={seccion==='entrenador'?'active':''} onClick={()=>setSeccion('entrenador')}>De mi entrenador</button>
+      </nav>}
+      {!soloVideos && <div style={{display:seccion==='ia'?'block':'none'}}><EntrenadorIAPro programacionInicial={programacionInicial} /></div>}
+      {(soloVideos || seccion==='entrenador') && <>
       <div className="ath-section-heading">
         
         <p>
@@ -307,6 +277,7 @@ export default function MisRutinas({ usuarioId, soloVideos = false }) {
           ))}
         </div>
       )}
+      </>}
     </section>
   );
 }

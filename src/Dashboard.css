@@ -1459,3 +1459,153 @@
  .ath-card p {font-size:12px;line-height:1.4;}
  .ath-card-link {font-size:12px;padding-top:10px;}
 }
+
+/* Perfil interactivo en el pie de la navegación */
+.ath-sidebar-profile-button{width:100%;border:0;background:transparent;color:inherit;text-align:left;cursor:pointer;font:inherit;border-radius:14px;padding:10px;}
+.ath-sidebar-profile-button:hover,.ath-sidebar-profile-button:focus-visible{background:rgba(191,245,121,.12);outline:2px solid transparent;}
+.ath-sidebar-profile-button:focus-visible{outline-color:#b9ee7a;}
+
+.ath-sidebar-account-link,.ath-sidebar-logout{width:100%;display:block;text-align:left;border:0;border-radius:12px;padding:12px 16px;font:inherit;font-size:.91rem;font-weight:650;cursor:pointer;background:rgba(255,255,255,.075);color:#e7edf4;margin-top:5px}.ath-sidebar-account-link:hover,.ath-sidebar-account-link:focus-visible{background:rgba(191,245,121,.15)}.ath-sidebar-logout{background:transparent;color:#f5c5ca}.ath-sidebar-logout:hover,.ath-sidebar-logout:focus-visible{background:rgba(255,255,255,.09)}
+
+/* Navegación móvil de rutinas: dos áreas independientes */
+.ath-rutinas-tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:8px;margin:0 0 16px;border-radius:16px;background:#e9f0ee;position:sticky;top:56px;z-index:5}
+.ath-rutinas-tabs button{border:0;background:transparent;border-radius:11px;min-height:48px;padding:10px 8px;font-weight:700;font-size:14px;color:#304a49;cursor:pointer}
+.ath-rutinas-tabs button.active{background:#fff;color:#142d2c;box-shadow:0 2px 10px #173f301a}
+.ath-routines,.aip,.aip-panel,.aip-exercise-item{min-width:0;max-width:100%;box-sizing:border-box}
+.aip .aip-tabs{position:relative;flex-wrap:wrap;overflow-x:visible!important}
+.aip .aip-tabs button{min-height:44px}
+.aip .aip-plan-head p{line-height:1.55}
+@media(max-width:480px){.ath-rutinas-tabs{top:51px;margin-bottom:12px}.aip .aip-head{margin-bottom:12px}.aip .aip-plan-head{margin-bottom:12px}.aip .aip-panel{padding:14px}.aip .aip-exercise-trigger{min-height:62px}}
+
+
+/* ATHLETIX v20 — menú con navegación desplazable y cuenta siempre visible */
+.ath-sidebar { min-height: 0; }
+.ath-sidebar-label { flex: 0 0 auto; }
+.ath-navigation {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: #46576a transparent;
+}
+.ath-sidebar-bottom {
+  flex: 0 0 auto;
+  margin-top: 0;
+  padding-top: 12px;
+  border-top: 1px solid rgba(201,218,234,.16);
+  background: #111c2b;
+}
+.ath-sidebar-profile-button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 10px;
+  margin-bottom: 4px;
+  background: rgba(255,255,255,.045);
+}
+.ath-sidebar-profile-button > div:last-child { min-width: 0; }
+.ath-sidebar-profile-button strong {
+  font-size: 13px;
+  line-height: 1.3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ath-sidebar-account-link, .ath-sidebar-logout {
+  min-height: 40px;
+  margin-top: 4px;
+  padding: 10px 12px;
+  font-size: 13px;
+}
+.ath-sidebar-account-link { background: #263448; }
+.ath-sidebar-logout { color: #f5b9bd; }
+@media (max-width: 850px) {
+  .ath-sidebar {
+    height: calc(100dvh - 64px);
+    max-height: calc(100dvh - 64px);
+    bottom: auto;
+    overflow: hidden;
+    gap: 9px;
+    padding: 14px 12px max(12px, env(safe-area-inset-bottom));
+  }
+  .ath-navigation {
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-bottom: 8px;
+  }
+  .ath-sidebar-label { margin-bottom: 0; }
+  .ath-sidebar-bottom { padding-top: 9px; }
+  .ath-nav-button { min-height: 43px; padding: 10px 12px; }
+}
+@media (max-width: 850px) and (max-height: 650px) {
+  .ath-sidebar-profile-button { padding: 6px 9px; }
+  .ath-sidebar-account-link, .ath-sidebar-logout { min-height: 36px; padding: 7px 10px; }
+  .ath-sidebar { gap: 6px; }
+}
+
+/* Gestión administrativa accesible en pantallas pequeñas */
+.ath-user-toggle{min-height:42px;padding:9px 13px;border:1px solid #c8d9e1;border-radius:12px;background:#f0f7f7;color:#14324b;font-weight:700;cursor:pointer;white-space:nowrap}
+.ath-user-toggle:disabled{opacity:.6;cursor:wait}
+@media(max-width:680px){
+ .ath-users-table-wrap{overflow:visible}
+ .ath-users-table,.ath-users-table tbody,.ath-users-table tr,.ath-users-table td{display:block;width:100%}
+ .ath-users-table thead{display:none}
+ .ath-users-table tr{border:1px solid #d9e4e9;border-radius:16px;margin:0 0 12px;padding:12px;background:#fff}
+ .ath-users-table td{border:0!important;padding:7px 4px!important;overflow-wrap:anywhere}
+ .ath-users-table td:before{content:attr(data-label);display:block;font-size:12px;color:#64748b;margin-bottom:4px;font-weight:600}
+ .ath-user-toggle{width:100%}
+}
+
+/* Confirmación de cierre de sesión integrada */
+.ath-logout-overlay { position: fixed; inset: 0; z-index: 99999; background: rgba(8, 18, 32, .64); display: flex; justify-content: center; align-items: center; padding: 18px; }
+.ath-logout-dialog { width: min(100%, 390px); box-sizing: border-box; background: #fff; color: #142236; border-radius: 20px; padding: 25px 23px; box-shadow: 0 20px 65px rgba(0,0,0,.25); text-align: center; }
+.ath-logout-symbol { width: 52px; height: 52px; margin: 0 auto 12px; border-radius: 15px; display: grid; place-items: center; background: #ecf8d4; color: #243b1c; font-size: 29px; }
+.ath-logout-dialog h2 { font-size: 21px; margin: 0 0 10px; color: #132236; }
+.ath-logout-dialog p { font-size: 14px; line-height: 1.55; color: #58677a; margin: 0 0 23px; }
+.ath-logout-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.ath-logout-actions button { min-height: 45px; border-radius: 11px; font-weight: 700; cursor: pointer; font-size: 13px; padding: 10px 8px; }
+.ath-logout-cancel { border: 1px solid #d6e0e9; background: #f2f5f8; color: #25364a; }
+.ath-logout-accept { border: 1px solid #b6e46c; background: #c4f17b; color: #172b14; }
+@media (max-width: 380px) { .ath-logout-dialog { padding: 22px 16px; } }
+/* v48: solicitud de eliminación, visualmente separada de desactivar */
+.ath-admin-delete-action { width:100%; margin-top:8px; padding:10px 12px; border:1px solid #b76a6a; border-radius:10px; background:transparent; color:#a84b4b; font:inherit; font-weight:600; cursor:pointer; }
+.ath-admin-delete-action:hover { background:rgba(183,106,106,.09); }
+.ath-admin-delete-action:disabled { opacity:.55; cursor:wait; }
+
+
+/* v48.1 — tarjetas de administración restauradas */
+.ath-admin-filters{display:flex;align-items:end;gap:12px;flex-wrap:wrap;margin:12px 0}
+.ath-admin-filters label{display:flex;flex-direction:column;gap:5px;font-size:13px;color:#53667b;font-weight:650}
+.ath-admin-filters select{min-height:42px;border:1px solid #d6e2ec;border-radius:10px;background:#fff;padding:8px 12px;color:#142338;font:inherit;min-width:125px}
+.ath-admin-result-count{font-size:13px;color:#63758a;margin:8px 0 14px}
+.ath-admin-user-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));gap:12px;min-width:0}
+.ath-admin-user-card{min-width:0;background:#fff;border:1px solid #dbe5ec;border-radius:17px;padding:15px;box-shadow:0 2px 8px rgba(20,42,65,.035);display:flex;flex-direction:column;gap:12px}
+.ath-admin-user-card-head{display:flex;gap:11px;align-items:center;min-width:0}
+.ath-admin-user-card .ath-user-avatar{width:43px;height:43px;min-width:43px;border-radius:13px;display:grid;place-items:center;background:#eaf3d9;color:#40631f;font-weight:800;font-size:18px}
+.ath-admin-user-main{display:flex;flex-direction:column;gap:3px;min-width:0;flex:1}
+.ath-admin-user-main strong{color:#142339;font-size:14px;line-height:1.35;overflow-wrap:anywhere}
+.ath-admin-user-email{color:#64758a;font-size:12px;line-height:1.45;overflow-wrap:anywhere;word-break:break-word}
+.ath-admin-user-meta{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.ath-admin-user-role{font-size:12px;font-weight:700;color:#41536a}
+.ath-admin-user-card .ath-user-status{font-size:11px;font-weight:750;border-radius:8px;padding:5px 9px}
+.ath-admin-user-card .ath-user-status.active{background:#e9f8e9;color:#22753e}
+.ath-admin-user-card .ath-user-status.inactive{background:#fdeaea;color:#a43939}
+.ath-admin-protected{font-size:12px;color:#78869a;background:#f5f7fa;border-radius:10px;padding:10px 11px}
+.ath-admin-user-action{width:100%;min-height:43px;border-radius:11px;border:1px solid #cddde6;background:#eef5f8;color:#17364d;font:inherit;font-size:13px;font-weight:750;cursor:pointer}
+.ath-admin-user-action:hover{background:#e4eff5}
+.ath-admin-user-action:disabled{opacity:.6;cursor:wait}
+.ath-admin-delete-action{min-height:43px;margin-top:0;border-radius:11px;font-size:13px}
+/* Portals: modal centrado en el viewport, independiente del scroll del panel */
+.ath-confirm-backdrop{position:fixed;inset:0;z-index:2147483000;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(10,22,38,.65);box-sizing:border-box;overscroll-behavior:contain}
+.ath-confirm-dialog{box-sizing:border-box;width:min(100%,420px);max-height:calc(100dvh - 32px);overflow-y:auto;background:#fff;color:#142339;border-radius:20px;padding:24px;box-shadow:0 22px 65px rgba(0,0,0,.28);text-align:center}
+.ath-confirm-symbol{width:50px;height:50px;margin:0 auto 13px;border-radius:15px;display:grid;place-items:center;background:#edf7d8;color:#42621f;font-size:25px;font-weight:800}
+.ath-confirm-dialog h3{font-size:20px;line-height:1.25;margin:0 0 11px;color:#142339}
+.ath-confirm-dialog p{font-size:14px;line-height:1.6;margin:0 0 22px;color:#586b80;overflow-wrap:anywhere}
+.ath-confirm-dialog p strong{color:#263b4f}
+.ath-confirm-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.ath-confirm-actions button{min-height:45px;padding:10px 8px;border-radius:11px;font:inherit;font-size:13px;font-weight:750;cursor:pointer}
+.ath-confirm-cancel{background:#f2f5f8;color:#293c50;border:1px solid #d8e2eb}
+.ath-confirm-accept{background:#c5f17b;color:#1b3014;border:1px solid #b4df69}
+.ath-confirm-actions button:disabled{opacity:.6;cursor:wait}
+@media(max-width:680px){.ath-admin-user-list{grid-template-columns:minmax(0,1fr)}.ath-admin-user-card{padding:14px}.ath-admin-filters{gap:9px}.ath-admin-filters label{flex:1;min-width:110px}.ath-admin-filters select{width:100%;min-width:0}.ath-confirm-dialog{padding:21px 17px}}

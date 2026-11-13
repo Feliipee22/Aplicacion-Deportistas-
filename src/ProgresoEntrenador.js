@@ -15,7 +15,6 @@ export default function ProgresoEntrenador() {
   const [filas, setFilas] = useState([]);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState('');
-  const [equipo, setEquipo] = useState('todos');
   const [busqueda, setBusqueda] = useState('');
   const [seleccionado, setSeleccionado] = useState(null);
   const [historial, setHistorial] = useState([]);
@@ -39,7 +38,7 @@ export default function ProgresoEntrenador() {
     let vigente = true;
     const cargarHistorial = async () => {
       setCargandoHistorial(true); setErrorHistorial(''); setHistorial([]);
-      const { data, error: fallo } = await supabase.rpc('athletix_historial_deportista_entrenador', { p_deportista_id: seleccionado });
+      const { data, error: fallo } = await supabase.rpc('ath_v29_historial_vinculado', { p_deportista_id: seleccionado });
       if (!vigente) return;
       if (fallo) setErrorHistorial(fallo.message || 'No fue posible cargar el historial.');
       else setHistorial(Array.isArray(data) ? data : []);
@@ -72,7 +71,7 @@ export default function ProgresoEntrenador() {
   const cargar = useCallback(async () => {
     setCargando(true); setError('');
     try {
-      const { data, error: fallo } = await supabase.rpc('athletix_resumen_deportistas_entrenador');
+      const { data, error: fallo } = await supabase.rpc('ath_v29_resumen_vinculados');
       if (fallo) throw fallo;
       if (!Array.isArray(data)) throw new Error('La consulta no devolvió una lista válida.');
       setFilas(data);
@@ -82,40 +81,18 @@ export default function ProgresoEntrenador() {
   }, []);
   useEffect(() => { cargar(); }, [cargar]);
 
-  const equipos = useMemo(() => [...new Map(filas.filter(f => f.equipo_id != null).map(f => [String(f.equipo_id), f.equipo || 'Equipo'])).entries()], [filas]);
-  // La RPC devuelve una fila por relación equipo-deportista. Las estadísticas pertenecen
-  // al deportista, por lo que SUMAR las filas duplicaría sus sesiones y minutos.
-  const deportistas = useMemo(() => {
-    const mapa = new Map();
-    filas.forEach(f => {
-      const id = String(f.deportista_id ?? '');
-      if (!id) return;
-      if (!mapa.has(id)) mapa.set(id, { ...f, equipos: [], _filas: [] });
-      const actual = mapa.get(id);
-      actual._filas.push(f);
-      if (f.equipo_id != null && !actual.equipos.some(e => e.id === String(f.equipo_id))) {
-        actual.equipos.push({ id: String(f.equipo_id), nombre: f.equipo || 'Equipo' });
-      }
-      // Todas las filas de un mismo deportista deberían devolver el mismo resumen.
-      // Si hay diferencias por versión de la RPC, se conserva la más reciente.
-      if (valorFecha(f.ultima_sesion) > valorFecha(actual.ultima_sesion)) {
-        Object.assign(actual, { sesiones_7d: f.sesiones_7d, sesiones_30d: f.sesiones_30d,
-          minutos_30d: f.minutos_30d, esfuerzo_promedio_30d: f.esfuerzo_promedio_30d,
-          ultima_sesion: f.ultima_sesion });
-      }
-    });
-    return [...mapa.values()];
-  }, [filas]);
+  // La RPC v29 devuelve una fila por deportista vinculado, sin equipos.
+  const deportistas = useMemo(() => filas, [filas]);
   const filtrados = useMemo(() => deportistas.filter(f =>
-    (equipo === 'todos' || f.equipos.some(e => e.id === equipo)) &&
     String(f.deportista || '').toLocaleLowerCase('es').includes(busqueda.trim().toLocaleLowerCase('es'))
-  ), [deportistas, equipo, busqueda]);
+  ), [deportistas, busqueda]);
   const totales = useMemo(() => ({
     deportistas: filtrados.length,
     sesiones: filtrados.reduce((a, f) => a + numero(f.sesiones_30d), 0),
     minutos: filtrados.reduce((a, f) => a + numero(f.minutos_30d), 0),
     activos: filtrados.filter(f => numero(f.sesiones_7d) > 0).length,
   }), [filtrados]);
+  const limpiarBusqueda = () => setBusqueda('');
   const ficha = filtrados.find(f => String(f.deportista_id) === String(seleccionado));
   const porcentaje = totales.deportistas ? Math.round(totales.activos / totales.deportistas * 100) : 0;
 
@@ -123,12 +100,14 @@ export default function ProgresoEntrenador() {
     {!seleccionado && <div ref={listadoRef} className="pe-overview">
     <header className="pe-head"><div><span className="pe-eyebrow">ATHLETIX · ENTRENADOR</span><h2>Progreso de mis deportistas</h2><p>Actividad personal registrada en planes IA. Últimos 30 días.</p></div><button type="button" onClick={cargar} disabled={cargando}>{cargando ? 'Cargando…' : 'Actualizar'}</button></header>
     {error && <div className="pe-error" role="alert">{error}</div>}
-    <div className="pe-controls"><label>Equipo<select value={equipo} onChange={e => { setEquipo(e.target.value); setSeleccionado(null); }}><option value="todos">Todos mis equipos</option>{equipos.map(([id, nombre]) => <option key={id} value={id}>{nombre}</option>)}</select></label><label>Buscar deportista<input value={busqueda} onChange={e => { setBusqueda(e.target.value); setSeleccionado(null); }} placeholder="Nombre del deportista" /></label></div>
-    <div className="pe-stats"><div><strong>{totales.deportistas}</strong><span>Deportistas únicos</span></div><div><strong>{totales.sesiones}</strong><span>Sesiones · 30 días</span></div><div><strong>{totales.minutos}</strong><span>Minutos · 30 días</span></div><div><strong>{totales.activos}</strong><span>Activos · 7 días</span></div></div>
-    <div className="pe-activity"><div><strong>Actividad reciente del equipo</strong><span>{porcentaje}% con registros en 7 días</span></div><div className="pe-activity-track"><div style={{width: `${porcentaje}%`}} /></div><p>{totales.activos} de {totales.deportistas} deportistas registraron al menos una sesión en los últimos siete días.</p></div>
-    {cargando && !filas.length ? <p className="pe-empty">Cargando seguimiento…</p> : !filtrados.length ? <div className="pe-empty"><strong>No hay deportistas para mostrar</strong><p>Prueba otro equipo o nombre. Solo se muestran deportistas autorizados por Supabase.</p></div> : <div className="pe-list">{filtrados.map(f => <article className="pe-athlete" key={String(f.deportista_id)}><div className="pe-athlete-top"><div className="pe-avatar" aria-hidden="true">{String(f.deportista || '?').charAt(0).toUpperCase()}</div><div className="pe-person"><h3>{f.deportista || 'Deportista'}</h3><p>{f.equipos.map(e => e.nombre).join(' · ')}</p></div></div><span className={numero(f.sesiones_7d) ? 'pe-status active' : 'pe-status'}>{numero(f.sesiones_7d) ? `${numero(f.sesiones_7d)} sesiones esta semana` : 'Sin sesiones esta semana'}</span><div className="pe-athlete-metrics"><div><strong>{numero(f.sesiones_30d)}</strong><span>Sesiones / 30 días</span></div><div><strong>{numero(f.minutos_30d)}</strong><span>Minutos / 30 días</span></div><div><strong>{promedio(f.esfuerzo_promedio_30d)}</strong><span>Esfuerzo medio</span></div></div><p className="pe-last">Último entrenamiento: <strong>{fechaBonita(f.ultima_sesion)}</strong></p><button type="button" className="pe-open" onClick={() => abrirFicha(f.deportista_id)}>Ver ficha deportiva</button></article>)}</div>}
+    <div className="pe-controls pe-controls-single"><label htmlFor="pe-buscar">Buscar entre mis deportistas vinculados</label><div className="pe-v29-search"><input id="pe-buscar" type="text" value={busqueda} onChange={e => { setBusqueda(e.target.value); setSeleccionado(null); }} placeholder="Escribe un nombre…" autoComplete="off" />{busqueda && <button type="button" onClick={limpiarBusqueda} aria-label="Limpiar búsqueda">✕</button>}</div><p className="pe-v29-results" aria-live="polite">{cargando ? 'Cargando deportistas…' : `${filtrados.length} ${filtrados.length === 1 ? 'deportista encontrado' : 'deportistas encontrados'}${busqueda.trim() ? ` para «${busqueda.trim()}»` : ''}`}</p></div>
+    {!busqueda.trim() && <div className="pe-v30-summary">    <div className="pe-stats"><div><strong>{totales.deportistas}</strong><span>Deportistas vinculados</span></div><div><strong>{totales.sesiones}</strong><span>Sesiones · 30 días</span></div><div><strong>{totales.minutos}</strong><span>Minutos · 30 días</span></div><div><strong>{totales.activos}</strong><span>Activos · 7 días</span></div></div>
+    <div className="pe-activity"><div><strong>Actividad reciente de mis deportistas</strong><span>{porcentaje}% con registros en 7 días</span></div><div className="pe-activity-track"><div style={{width: `${porcentaje}%`}} /></div><p>{totales.activos} de {totales.deportistas} deportistas registraron al menos una sesión en los últimos siete días.</p></div>
+</div>}
+    {cargando && !filas.length ? <p className="pe-empty">Cargando seguimiento…</p> : !filtrados.length ? <div className="pe-empty"><strong>{busqueda.trim() ? 'No encontramos deportistas con ese nombre' : 'Aún no tienes deportistas vinculados'}</strong><p>{busqueda.trim() ? 'Prueba otro nombre o limpia la búsqueda.' : 'Cuando aceptes una solicitud de vinculación, el deportista aparecerá aquí.'}</p>{busqueda.trim() && <button type="button" className="pe-v29-clear" onClick={limpiarBusqueda}>Limpiar búsqueda</button>}</div> : <div className="pe-list">{filtrados.map(f => <article className="pe-athlete" key={String(f.deportista_id)}><div className="pe-athlete-top"><div className="pe-avatar" aria-hidden="true">{String(f.deportista || '?').charAt(0).toUpperCase()}</div><div className="pe-person"><h3>{f.deportista || 'Deportista'}</h3><p>Deportista</p><span className={numero(f.sesiones_7d) ? 'pe-status active' : 'pe-status'}>{numero(f.sesiones_7d) ? `${numero(f.sesiones_7d)} sesiones esta semana` : 'Sin sesiones esta semana'}</span></div></div><div className="pe-athlete-metrics"><div><strong>{numero(f.sesiones_30d)}</strong><span>Sesiones / 30 días</span></div><div><strong>{numero(f.minutos_30d)}</strong><span>Minutos / 30 días</span></div><div><strong>{promedio(f.esfuerzo_promedio_30d)}</strong><span>Esfuerzo medio</span></div></div><p className="pe-last">Último entrenamiento: <strong>{fechaBonita(f.ultima_sesion)}</strong></p><button type="button" className="pe-open" onClick={() => abrirFicha(f.deportista_id)}>Ver ficha deportiva</button></article>)}</div>}
+
     </div>}
-    {ficha && <section ref={fichaRef} className="pe-detail" aria-label="Ficha deportiva del deportista"><div className="pe-detail-heading"><div><span className="pe-eyebrow">FICHA DEPORTIVA</span><h3>{ficha.deportista}</h3><p>{ficha.equipos.map(e => e.nombre).join(' · ')}</p></div><button type="button" onClick={volver} aria-label="Volver al listado de deportistas">← Volver a deportistas</button></div><div className="pe-detail-grid"><div><span>Sesiones / 7 días</span><strong>{numero(ficha.sesiones_7d)}</strong></div><div><span>Sesiones / 30 días</span><strong>{numero(ficha.sesiones_30d)}</strong></div><div><span>Tiempo / 30 días</span><strong>{numero(ficha.minutos_30d)} min</strong></div><div><span>Esfuerzo percibido</span><strong>{promedio(ficha.esfuerzo_promedio_30d)}</strong></div></div><div className="pe-detail-note"><strong>Última sesión registrada</strong><p>{fechaBonita(ficha.ultima_sesion)}</p><p>El historial de sesiones y ejercicios se consulta con permisos de Supabase para este entrenador. Las observaciones personales del deportista permanecen privadas.</p></div>
+    {ficha && <section ref={fichaRef} className="pe-detail" aria-label="Ficha deportiva del deportista"><div className="pe-detail-heading"><div><span className="pe-eyebrow">FICHA DEPORTIVA</span><h3>{ficha.deportista}</h3><p>Deportista</p></div><button type="button" onClick={volver} aria-label="Volver al listado de deportistas">← Volver a deportistas</button></div><div className="pe-detail-grid"><div><span>Sesiones / 7 días</span><strong>{numero(ficha.sesiones_7d)}</strong></div><div><span>Sesiones / 30 días</span><strong>{numero(ficha.sesiones_30d)}</strong></div><div><span>Tiempo / 30 días</span><strong>{numero(ficha.minutos_30d)} min</strong></div><div><span>Esfuerzo percibido</span><strong>{promedio(ficha.esfuerzo_promedio_30d)}</strong></div></div><div className="pe-detail-note"><strong>Última sesión registrada</strong><p>{fechaBonita(ficha.ultima_sesion)}</p><p>El historial de sesiones y ejercicios se consulta con permisos de Supabase para este entrenador. Las observaciones personales del deportista permanecen privadas.</p></div>
       <div className="pe-history">
         <div className="pe-history-head"><h4>Historial de entrenamiento</h4><label>Período <select value={periodo} onChange={e => setPeriodo(Number(e.target.value))}><option value={30}>30 días</option><option value={60}>60 días</option><option value={90}>90 días</option></select></label></div>
         {cargandoHistorial ? <p>Cargando sesiones…</p> : errorHistorial ? <p role="alert" className="pe-error">{errorHistorial}</p> : <>

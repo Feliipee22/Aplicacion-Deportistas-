@@ -201,3 +201,18 @@
   .ath-rt-stats { grid-template-columns: 1fr; }
   .ath-rt-numbers { gap: 8px; }
 }
+
+/* v25: panel compacto de asignaciones; evita botones gigantes en móvil. */
+.ath-rt-assign { margin-top: 12px; padding: 16px; }
+.ath-rt-assign-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.ath-rt-assign-heading h5 { margin-bottom: 5px; }
+.ath-rt-assign-heading .ath-rt-muted { margin: 0; line-height: 1.5; }
+.ath-rt-assign-close { border: 1px solid #d7e1ea; border-radius: 9px; background: white; color: #263b50; padding: 8px 11px; font: inherit; font-size: 12px; font-weight: 700; flex-shrink: 0; cursor: pointer; }
+.ath-rt-assign .ath-rt-assign-form { display: grid; grid-template-columns: minmax(0,1fr); gap: 12px; align-items: stretch; margin-top: 16px; }
+.ath-rt-assign .ath-rt-assign-form > * { min-width: 0; width: 100%; flex: none; }
+.ath-rt-assign .ath-rt-assign-submit { display: block; width: 100%; height: 46px; min-height: 46px; max-height: 46px; padding: 10px 16px; flex: none; align-self: auto; border-radius: 11px; }
+.ath-rt-assign-empty { margin-top: 15px; background: #edf6e8; border: 1px solid #d4e8ca; border-radius: 12px; padding: 13px; color: #25452c; }
+.ath-rt-assign-empty strong { font-size: 13px; }
+.ath-rt-assign-empty p { margin: 6px 0 0; font-size: 12px; line-height: 1.55; }
+.ath-rt-assign .ath-rt-assigned { margin-top: 16px; padding-top: 14px; }
+@media(max-width:550px) { .ath-rt-assign-heading { flex-wrap: wrap; } .ath-rt-assign { padding: 14px; } }

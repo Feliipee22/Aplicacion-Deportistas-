@@ -8,16 +8,17 @@ import GestionVideosAdmin from './GestionVideosAdmin';
 import VideosDeportista from './VideosDeportista';
 import MiAlimentacion from './MiAlimentacion';
 import RutinasEntrenador from './RutinasEntrenador';
-import GestionEquipos from './GestionEquipos';
-import MisEquiposEntrenador from './MisEquiposEntrenador';
 import ProgresoEntrenador from './ProgresoEntrenador';
-import MisEquiposDeportista from './MisEquiposDeportista';
 import CalendarioDeportivo from './CalendarioDeportivo';
 import AsistenciaEntrenador from './AsistenciaEntrenador';
 import MiAsistencia from './MiAsistencia';
 import Avisos from './Avisos';
 import ReportesAdmin from './ReportesAdmin';
 import AthletixMatch from './AthletixMatch';
+import InicioAthletix from './InicioAthletix';
+import ComunidadChat from './ComunidadChat';
+import MiPerfil from './MiPerfil';
+import MiEntrenador from './MiEntrenador';
 import logoAthletix from "./assets/athletix-logo.jpg";
 
 // Iconos del panel: no requieren librerías adicionales.
@@ -92,6 +93,7 @@ function IconoModulo({ tipo }) {
         <path d="M12 4v5M9 6l3 3 3-3" />
       </>
     ),
+    comunidad: (<><path d="M4 5h16v11H9l-5 4z"/><path d="M8 9h8M8 12h5"/></>),
     mapa: (
       <>
         <path d="m3 6 6-3 6 3 6-3v15l-6 3-6-3-6 3z" />
@@ -129,14 +131,15 @@ function IconoModulo({ tipo }) {
 const configuracion = {
   1: {
     rol: 'Administrador',
-    descripcion: 'Gestiona tu organización deportiva desde un solo lugar.',
+    descripcion: 'Administra usuarios, contenido y reportes de Athletix.',
     modulos: [
       { id: 'ejercicios', nombre: 'Gestión de videos', descripcion: 'Administrar ejercicios y videos de los entrenadores.' },
       { id: 'usuarios', nombre: 'Usuarios', descripcion: 'Administrar cuentas y permisos.' },
-      { id: 'equipos', nombre: 'Equipos', descripcion: 'Organizar equipos y deportistas.' },
+
       { id: 'actividades', nombre: 'Calendario', descripcion: 'Planificar actividades deportivas.' },
       { id: 'avisos', nombre: 'Avisos', descripcion: 'Publicar comunicaciones.' },
       { id: 'reportes', nombre: 'Reportes', descripcion: 'Consultar estadísticas.' },
+      { id: 'comunidad', nombre: 'Comunidad', descripcion: 'Chat general, mensajes privados y grupos.' },
       { id: 'mapa', nombre: 'Athletix Match', descripcion: 'Explorar lugares deportivos y organizar partidos.' },
     ],
   },
@@ -144,7 +147,8 @@ const configuracion = {
     rol: 'Entrenador',
     descripcion: 'Organiza tus entrenamientos y acompaña a tus deportistas.',
     modulos: [
-      { id: 'equipos', nombre: 'Mis equipos', descripcion: 'Consultar los equipos asignados.' },
+
+      { id: 'vinculos', nombre: 'Mis deportistas', descripcion: 'Gestionar solicitudes y vínculos con deportistas.' },
       { id: 'progreso', nombre: 'Progreso deportivo', descripcion: 'Revisar actividad y seguimiento de tus deportistas.' },
       { id: 'ejercicios', nombre: 'Ejercicios y videos', descripcion: 'Crear ejercicios y subir videos demostrativos.' },
       { id: 'rutinas', nombre: 'Rutinas', descripcion: 'Preparar planes de entrenamiento.' },
@@ -152,6 +156,7 @@ const configuracion = {
       { id: 'actividades', nombre: 'Calendario', descripcion: 'Organizar sesiones y actividades.' },
       { id: 'asistencia', nombre: 'Asistencia', descripcion: 'Registrar participación.' },
       { id: 'avisos', nombre: 'Avisos', descripcion: 'Comunicar novedades.' },
+      { id: 'comunidad', nombre: 'Comunidad', descripcion: 'Chat general, mensajes privados y grupos.' },
       { id: 'mapa', nombre: 'Athletix Match', descripcion: 'Explorar lugares deportivos y organizar partidos.' },
     ],
   },
@@ -159,20 +164,25 @@ const configuracion = {
     rol: 'Deportista',
     descripcion: 'Tu entrenamiento, actividades y progreso en un solo lugar.',
     modulos: [
+      { id: 'vinculos', nombre: 'Mi entrenador', descripcion: 'Vincularte con un entrenador personal.' },
       { id: 'rutinas', nombre: 'Mis rutinas', descripcion: 'Consultar tus entrenamientos.' },
       { id: 'videos', nombre: 'Videos de ejercicios', descripcion: 'Ver los videos de los ejercicios de tus rutinas.' },
       { id: 'alimentacion', nombre: 'Mi alimentación', descripcion: 'Registrar comidas y consultar sus macronutrientes.' },
-      { id: 'equipos', nombre: 'Mis equipos', descripcion: 'Consultar tus equipos, entrenadores y compañeros.' },
+
       { id: 'actividades', nombre: 'Calendario', descripcion: 'Revisar próximas actividades.' },
       { id: 'asistencia', nombre: 'Mi asistencia', descripcion: 'Consultar tu participación.' },
-      { id: 'avisos', nombre: 'Avisos', descripcion: 'Revisar novedades de tu club.' },
+      { id: 'avisos', nombre: 'Avisos', descripcion: 'Revisar novedades de tu entrenador.' },
+      { id: 'comunidad', nombre: 'Comunidad', descripcion: 'Chat general, mensajes privados y grupos.' },
       { id: 'mapa', nombre: 'Athletix Match', descripcion: 'Explorar lugares deportivos y organizar partidos.' },
     ],
   },
 };
 
-export default function Dashboard({ perfil, onCerrarSesion }) {
+export default function Dashboard({ perfil, onCerrarSesion, onPerfilActualizado }) {
   const [seccion, setSeccion] = useState('inicio');
+  const [confirmarSalida, setConfirmarSalida] = useState(false);
+  const [destinoCalendario, setDestinoCalendario] = useState(null);
+  const [fechaCalendario, setFechaCalendario] = useState(null);
   const [partidoDesdeAviso, setPartidoDesdeAviso] = useState(null);
   const [menuMovilAbierto, setMenuMovilAbierto] = useState(false);
 
@@ -189,6 +199,19 @@ export default function Dashboard({ perfil, onCerrarSesion }) {
     document.addEventListener('keydown', cerrarConEscape);
     return () => document.removeEventListener('keydown', cerrarConEscape);
   }, [menuMovilAbierto]);
+
+  useEffect(() => {
+    const abrir = (evento) => {
+      const d = evento.detail || {};
+      if (d.seccion === 'actividades') { setFechaCalendario(d.fecha || null); navegar('actividades'); }
+      if (d.seccion === 'rutinas' && d.programacionId) {
+        setDestinoCalendario({id:d.programacionId, planId:d.planId, sesionIndice:d.sesionIndice});
+        navegar('rutinas');
+      }
+    };
+    window.addEventListener('athletix:navegar', abrir);
+    return () => window.removeEventListener('athletix:navegar', abrir);
+  }, []);
 
   const config = configuracion[perfil.rol_id];
 
@@ -271,7 +294,7 @@ export default function Dashboard({ perfil, onCerrarSesion }) {
         </nav>
 
         <div className="ath-sidebar-bottom">
-          <div className="ath-sidebar-profile">
+          <button type="button" className="ath-sidebar-profile ath-sidebar-profile-button" onClick={() => navegar('perfil')} aria-label="Abrir mi perfil">
             <div className="ath-avatar">
               {primerNombre.charAt(0).toUpperCase()}
             </div>
@@ -279,7 +302,9 @@ export default function Dashboard({ perfil, onCerrarSesion }) {
               <strong>{perfil.nombre}</strong>
               <span>{config.rol}</span>
             </div>
-          </div>
+          </button>
+          <button type="button" className="ath-sidebar-account-link" onClick={() => navegar('perfil')}>⚙ Mi perfil y configuración</button>
+          <button type="button" className="ath-sidebar-logout" onClick={() => setConfirmarSalida(true)}>↪ Cerrar sesión</button>
         </div>
       </aside>
 
@@ -292,83 +317,30 @@ export default function Dashboard({ perfil, onCerrarSesion }) {
             <h1>
               {seccion === 'inicio'
                 ? 'Panel principal'
-                : moduloActual?.nombre}
+                : seccion === 'perfil' ? 'Mi perfil' : moduloActual?.nombre}
             </h1>
           </div>
 
-          <button
-            className="ath-logout"
-            onClick={onCerrarSesion}
-          >
-            Cerrar sesión
-          </button>
+
         </header>
 
-        {seccion === 'inicio' ? (
-          <>
-            <section className="ath-hero">
-              <span className="ath-hero-label">
-                ESPACIO DE {config.rol.toUpperCase()}
-              </span>
-
-              <h2>Hola, {primerNombre}.</h2>
-
-              <p>{config.descripcion}</p>
-
-              <div className="ath-hero-footer">
-                <span className="ath-status-dot" />
-                Tu sesión está activa
-              </div>
-            </section>
-
-            <section className="ath-section">
-              <div className="ath-section-heading">
-                <div>
-                  <h2>Accesos rápidos</h2>
-                  <p>
-                    Explora las herramientas disponibles
-                    para tu rol.
-                  </p>
-                </div>
-              </div>
-
-              <div className="ath-cards">
-                {config.modulos.map((modulo) => (
-                  <button
-                    className="ath-card"
-                    key={modulo.id}
-                    onClick={() => navegar(modulo.id)}
-                  >
-                    <div className="ath-card-icon">
-                      <IconoModulo tipo={modulo.id} />
-                    </div>
-
-                    <h3>{modulo.nombre}</h3>
-                    <p>{modulo.descripcion}</p>
-
-                    <span className="ath-card-link">
-                      Explorar <span>→</span>
-                    </span>
-                  </button>
-                ))}
-              </div>
-            </section>
-          </>
-                        
+        {seccion === 'perfil' ? (
+          <MiPerfil perfil={perfil} onPerfilActualizado={onPerfilActualizado} onCerrarSesion={onCerrarSesion} />
+        ) : seccion === 'inicio' ? (
+          <InicioAthletix perfil={perfil} onNavegar={navegar} />
+) : seccion === 'comunidad' ? (
+  <ComunidadChat perfil={perfil} />
 ) : seccion === 'mapa' && [1, 2, 3].includes(perfil.rol_id) ? (
   <AthletixMatch perfil={perfil} partidoDestacadoId={partidoDesdeAviso} />
 ) : seccion === 'usuarios' && perfil.rol_id === 1 ? (
   <GestionUsuarios />
-) : seccion === 'equipos' && perfil.rol_id === 1 ? (
-  <GestionEquipos />
-) : seccion === 'equipos' && perfil.rol_id === 2 ? (
-  <MisEquiposEntrenador usuarioId={perfil.id} />
+
+) : seccion === 'vinculos' && [2,3].includes(perfil.rol_id) ? (
+  <MiEntrenador perfil={perfil} />
 ) : seccion === 'progreso' && perfil.rol_id === 2 ? (
   <ProgresoEntrenador />
-) : seccion === 'equipos' && perfil.rol_id === 3 ? (
-  <MisEquiposDeportista usuarioId={perfil.id} />
 ) : seccion === 'actividades' && [1, 2, 3].includes(perfil.rol_id) ? (
-  <CalendarioDeportivo perfil={perfil} />
+  <CalendarioDeportivo perfil={perfil} fechaInicial={fechaCalendario} />
 ) : seccion === 'ejercicios' && perfil.rol_id === 1 ? (
   <GestionVideosAdmin />
 ) : seccion === 'ejercicios' && perfil.rol_id === 2 ? (
@@ -376,7 +348,7 @@ export default function Dashboard({ perfil, onCerrarSesion }) {
 ) : seccion === 'rutinas' && perfil.rol_id === 2 ? (
   <RutinasEntrenador usuarioId={perfil.id} />
 ) : seccion === 'rutinas' && perfil.rol_id === 3 ? (
-  <MisRutinas usuarioId={perfil.id} />
+  <MisRutinas usuarioId={perfil.id} programacionInicial={destinoCalendario} />
 ) : seccion === 'videos' && perfil.rol_id === 3 ? (
   <VideosDeportista usuarioId={perfil.id} />
 ) : seccion === 'asistencia' && perfil.rol_id === 2 ? (
@@ -414,6 +386,19 @@ export default function Dashboard({ perfil, onCerrarSesion }) {
           </section>
         )}
       </main>
+      {confirmarSalida && (
+        <div className="ath-logout-overlay" role="presentation" onMouseDown={(e) => { if (e.target === e.currentTarget) setConfirmarSalida(false); }}>
+          <section className="ath-logout-dialog" role="dialog" aria-modal="true" aria-labelledby="ath-logout-title" aria-describedby="ath-logout-description">
+            <div className="ath-logout-symbol" aria-hidden="true">↪</div>
+            <h2 id="ath-logout-title">¿Cerrar sesión?</h2>
+            <p id="ath-logout-description">¿Quieres salir de tu cuenta de Athletix? Podrás volver a iniciar sesión cuando quieras.</p>
+            <div className="ath-logout-actions">
+              <button type="button" className="ath-logout-cancel" onClick={() => setConfirmarSalida(false)}>Cancelar</button>
+              <button type="button" className="ath-logout-accept" onClick={() => { setConfirmarSalida(false); onCerrarSesion(); }}>Sí, cerrar sesión</button>
+            </div>
+          </section>
+        </div>
+      )}
     </div>
   );
 }

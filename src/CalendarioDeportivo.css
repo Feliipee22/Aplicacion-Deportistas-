@@ -239,3 +239,24 @@
   .ath-cal-date-picker { padding: 9px; }
   .ath-cal-date-picker-days button { min-width: 0; padding: 0; }
 }
+
+.ath-cal-personal-session{border:1px solid #cbd9e7;border-radius:14px;padding:14px;margin:10px 0;background:rgba(128,170,210,.07)}.ath-cal-personal-session-top{display:flex;justify-content:space-between;align-items:start;gap:10px;flex-wrap:wrap}.ath-cal-personal-session-top span{font-size:12px;font-weight:700;color:#327a59}.ath-cal-personal-session small{display:block;margin-top:7px;opacity:.75}.ath-cal-personal-chip{background:#d9f4e5!important;color:#245d44!important}
+
+/* Sesión personal IA: acción móvil */
+.ath-cal-start-session{display:block;width:100%;margin-top:12px;padding:12px 16px;border:0;border-radius:12px;background:#b5f575;color:#14283b;font:inherit;font-weight:800;cursor:pointer;min-height:44px}.ath-cal-start-session:hover{filter:brightness(.96)}.ath-cal-start-session:focus-visible{outline:3px solid #426e31;outline-offset:2px}
+
+/* Athletix v21: gestión de entrenamientos personales */
+.ath-cal-personal-actions{display:flex;flex-wrap:wrap;gap:9px;margin-top:12px}
+.ath-cal-personal-actions button{min-height:42px;border-radius:11px;padding:10px 14px;font-weight:750;font:inherit;cursor:pointer}
+.ath-cal-manage-session{border:1px solid #cbd8e3;background:#f0f5f8;color:#16354b}
+.ath-cal-session-editor{margin-top:12px;border-top:1px solid #dce5e9;padding-top:14px;display:grid;gap:12px}
+.ath-cal-session-editor>strong{color:#152b3c}
+.ath-cal-session-editor label{display:grid;gap:6px;font-size:13px;font-weight:700;color:#1d3547}
+.ath-cal-session-editor input{width:100%;box-sizing:border-box;min-height:44px;padding:9px 12px;border:1px solid #c8d5df;border-radius:11px;background:#fff;color:#172b3b;font:inherit}
+.ath-cal-session-editor-actions{display:grid;gap:8px}
+.ath-cal-session-editor-actions button{min-height:44px;border-radius:11px;padding:10px 14px;font-weight:750;cursor:pointer}
+.ath-cal-save-session{background:#b8f579;border:0;color:#13283c}
+.ath-cal-cancel-session{background:#fff4f3;border:1px solid #e8b4b0;color:#a02f36}
+.ath-cal-close-session{background:#eef3f5;border:1px solid #d7e1e6;color:#19384c}
+.ath-cal-session-error{color:#aa2833;background:#fff0f0;border-radius:9px;padding:10px;font-size:13px}
+.ath-cal-session-editor-actions button:disabled{opacity:.55;cursor:not-allowed}

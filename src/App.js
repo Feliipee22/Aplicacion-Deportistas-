@@ -4,6 +4,8 @@ import { supabase } from './supabase';
 import Login from './Login';
 import Dashboard from './Dashboard';
 
+const cuentaActiva = (valor) => valor === true || ['true', 'activo', 'activa', 'active', '1'].includes(String(valor).trim().toLowerCase());
+
 const nombresRoles = {
   1: 'Administrador',
   2: 'Entrenador',
@@ -59,7 +61,7 @@ function App() {
 
       const { data, error } = await supabase
         .from('usuarios')
-        .select('id, nombre, rol_id, estado')
+        .select('id, nombre, rol_id, estado, correo, telefono')
         .eq('id', idUsuario)
         .maybeSingle();
 
@@ -69,7 +71,7 @@ function App() {
         setErrorPerfil('No se pudo verificar tu perfil.');
       } else if (
         !data ||
-        data.estado !== true ||
+        !cuentaActiva(data.estado) ||
         !nombresRoles[data.rol_id]
       ) {
         setErrorPerfil(
@@ -88,6 +90,45 @@ function App() {
       activo = false;
     };
   }, [idUsuario]);
+
+  // Revalidar el estado del perfil durante sesiones ya abiertas.
+  // No reemplaza las políticas RLS ni las verificaciones del servidor.
+  useEffect(() => {
+    if (!idUsuario) return undefined;
+    let vigente = true;
+    let comprobando = false;
+    const comprobarAcceso = async () => {
+      if (comprobando || !vigente) return;
+      comprobando = true;
+      try {
+        const { data, error } = await supabase.from('usuarios')
+          .select('id, rol_id, estado').eq('id', idUsuario).maybeSingle();
+        if (!vigente) return;
+        if (!error && (!data || !cuentaActiva(data.estado) || !nombresRoles[data.rol_id])) {
+          setPerfil(null);
+          setErrorPerfil('Tu cuenta está inactiva o ya no tiene acceso a Athletix.');
+          await supabase.auth.signOut();
+        } else if (!error) {
+          setPerfil(anterior => anterior && anterior.id === idUsuario
+            ? { ...anterior, rol_id: data.rol_id, estado: data.estado } : anterior);
+        }
+      } catch (_) {
+        // Fallas de red no deben cerrar una sesión válida sin confirmación.
+      } finally { comprobando = false; }
+    };
+    const alVolver = () => { if (document.visibilityState === 'visible') comprobarAcceso(); };
+    const intervalo = window.setInterval(comprobarAcceso, 45000);
+    document.addEventListener('visibilitychange', alVolver);
+    window.addEventListener('focus', comprobarAcceso);
+    return () => {
+      vigente = false;
+      window.clearInterval(intervalo);
+      document.removeEventListener('visibilitychange', alVolver);
+      window.removeEventListener('focus', comprobarAcceso);
+    };
+  }, [idUsuario]);
+
+  const actualizarPerfil = (cambios) => setPerfil((actual) => actual ? { ...actual, ...cambios } : actual);
 
   const cerrarSesion = async () => {
     await supabase.auth.signOut();
@@ -124,6 +165,7 @@ function App() {
   <Dashboard
     perfil={perfil}
     onCerrarSesion={cerrarSesion}
+    onPerfilActualizado={actualizarPerfil}
   />
 );
 }

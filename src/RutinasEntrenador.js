@@ -48,7 +48,7 @@ export default function RutinasEntrenador({ usuarioId }) {
   const [errorDetalle, setErrorDetalle] = useState('');
 
 
-  // Asignaciones individuales: solo deportistas visibles para el entrenador.
+  // Asignaciones individuales mediante rutina_usuario; el acceso real depende de RLS.
   const [rutinaParaAsignar, setRutinaParaAsignar] = useState(null);
   const [deportistasDisponibles, setDeportistasDisponibles] = useState([]);
   const [asignacionesRutina, setAsignacionesRutina] = useState([]);
@@ -57,16 +57,6 @@ export default function RutinasEntrenador({ usuarioId }) {
   const [guardandoAsignacion, setGuardandoAsignacion] = useState(false);
   const [errorAsignacion, setErrorAsignacion] = useState('');
   const [mensajeAsignacion, setMensajeAsignacion] = useState('');
-
-  // Asignaciones por equipo: un registro en rutina_equipo cubre a sus deportistas activos.
-  const [rutinaParaAsignarEquipo, setRutinaParaAsignarEquipo] = useState(null);
-  const [equiposDisponibles, setEquiposDisponibles] = useState([]);
-  const [asignacionesEquipo, setAsignacionesEquipo] = useState([]);
-  const [equipoElegido, setEquipoElegido] = useState('');
-  const [cargandoEquipos, setCargandoEquipos] = useState(false);
-  const [guardandoAsignacionEquipo, setGuardandoAsignacionEquipo] = useState(false);
-  const [errorAsignacionEquipo, setErrorAsignacionEquipo] = useState('');
-  const [mensajeAsignacionEquipo, setMensajeAsignacionEquipo] = useState('');
 
   const cargarDatos = useCallback(async () => {
     if (!usuarioId) {
@@ -503,7 +493,7 @@ export default function RutinasEntrenador({ usuarioId }) {
   // La consulta de usuarios respeta las políticas RLS: el entrenador
   // solo verá deportistas a los que su cuenta tenga acceso.
   const abrirAsignaciones = async (rutina) => {
-    if (cargandoAsignaciones || guardandoAsignacion || cargandoEquipos || guardandoAsignacionEquipo) return;
+    if (cargandoAsignaciones || guardandoAsignacion) return;
 
     if (rutinaParaAsignar === rutina.id) {
       setRutinaParaAsignar(null);
@@ -513,11 +503,6 @@ export default function RutinasEntrenador({ usuarioId }) {
       return;
     }
 
-    // Al abrir una asignación individual, ocultamos la de equipo.
-    setRutinaParaAsignarEquipo(null);
-    setEquipoElegido('');
-    setErrorAsignacionEquipo('');
-    setMensajeAsignacionEquipo('');
     setRutinaParaAsignar(rutina.id);
     setDeportistasDisponibles([]);
     setAsignacionesRutina([]);
@@ -527,23 +512,16 @@ export default function RutinasEntrenador({ usuarioId }) {
     setCargandoAsignaciones(true);
 
     try {
-      const [respuestaDeportistas, respuestaAsignaciones] = await Promise.all([
-        supabase
-          .from('usuarios')
-          .select('id, nombre')
-          .eq('rol_id', 3)
-          .eq('estado', true)
-          .order('nombre', { ascending: true }),
-        supabase
-          .from('rutina_usuario')
-          .select('id, usuario_id, activo')
-          .eq('rutina_id', rutina.id),
+      const [respuestaVinculos, respuestaAsignaciones] = await Promise.all([
+        supabase.rpc('ath_mis_vinculos'),
+        supabase.from('rutina_usuario').select('id, usuario_id, activo').eq('rutina_id', rutina.id),
       ]);
-
-      if (respuestaDeportistas.error) throw respuestaDeportistas.error;
+      if (respuestaVinculos.error) throw respuestaVinculos.error;
       if (respuestaAsignaciones.error) throw respuestaAsignaciones.error;
-
-      setDeportistasDisponibles(respuestaDeportistas.data || []);
+      const vinculados = (respuestaVinculos.data || [])
+        .filter(v => v.estado === 'activo' && v.entrenador_id === usuarioId)
+        .map(v => ({ id: v.deportista_id, nombre: v.nombre_otro }));
+      setDeportistasDisponibles(vinculados);
       setAsignacionesRutina(respuestaAsignaciones.data || []);
     } catch (error) {
       console.error('Error al consultar deportistas y asignaciones:', error);
@@ -628,177 +606,6 @@ export default function RutinasEntrenador({ usuarioId }) {
     }
   };
 
-
-  // Consultar exclusivamente equipos activos donde la sesión figura como entrenador.
-  const abrirAsignacionesEquipo = async (rutina) => {
-    if (cargandoEquipos || guardandoAsignacionEquipo || cargandoAsignaciones || guardandoAsignacion) return;
-
-    if (rutinaParaAsignarEquipo === rutina.id) {
-      setRutinaParaAsignarEquipo(null);
-      setEquipoElegido('');
-      setErrorAsignacionEquipo('');
-      setMensajeAsignacionEquipo('');
-      return;
-    }
-
-    // Un solo panel de asignación abierto a la vez.
-    setRutinaParaAsignar(null);
-    setDeportistaElegido('');
-    setErrorAsignacion('');
-    setMensajeAsignacion('');
-    setRutinaParaAsignarEquipo(rutina.id);
-    setEquiposDisponibles([]);
-    setAsignacionesEquipo([]);
-    setEquipoElegido('');
-    setErrorAsignacionEquipo('');
-    setMensajeAsignacionEquipo('');
-    setCargandoEquipos(true);
-
-    try {
-      const { data: membresias, error: errorMembresias } = await supabase
-        .from('usuario_equipo')
-        .select('equipo_id')
-        .eq('usuario_id', usuarioId)
-        .eq('funcion_en_equipo', 'ENTRENADOR')
-        .eq('activo', true);
-
-      if (errorMembresias) throw errorMembresias;
-      const equiposIds = [...new Set((membresias || []).map((item) => item.equipo_id))];
-
-      if (equiposIds.length === 0) {
-        setEquiposDisponibles([]);
-        setAsignacionesEquipo([]);
-        return;
-      }
-
-      const [respuestaEquipos, respuestaAsignaciones] = await Promise.all([
-        supabase
-          .from('equipos')
-          .select('id, nombre')
-          .in('id', equiposIds)
-          .eq('estado', true)
-          .order('nombre', { ascending: true }),
-        supabase
-          .from('rutina_equipo')
-          .select('id, equipo_id, activo')
-          .eq('rutina_id', rutina.id)
-          .in('equipo_id', equiposIds),
-      ]);
-
-      if (respuestaEquipos.error) throw respuestaEquipos.error;
-      if (respuestaAsignaciones.error) throw respuestaAsignaciones.error;
-
-      setEquiposDisponibles(respuestaEquipos.data || []);
-      setAsignacionesEquipo(respuestaAsignaciones.data || []);
-    } catch (error) {
-      console.error('Error al consultar equipos y asignaciones:', error);
-      setErrorAsignacionEquipo('No se pudieron cargar los equipos. Revisa los permisos de Supabase.');
-    } finally {
-      setCargandoEquipos(false);
-    }
-  };
-
-  const asignarRutinaAEquipo = async (evento) => {
-    evento.preventDefault();
-    if (guardandoAsignacionEquipo || cargandoEquipos || rutinaParaAsignarEquipo === null) return;
-
-    setErrorAsignacionEquipo('');
-    setMensajeAsignacionEquipo('');
-
-    const rutina = rutinas.find((item) => item.id === rutinaParaAsignarEquipo);
-    const equipo = equiposDisponibles.find((item) => item.id === Number(equipoElegido));
-
-    if (!rutina || rutina.estado !== 'ACTIVA') {
-      setErrorAsignacionEquipo('Solo puedes asignar rutinas activas.');
-      return;
-    }
-    if (!equipo) {
-      setErrorAsignacionEquipo('Selecciona un equipo de la lista.');
-      return;
-    }
-
-    const previa = asignacionesEquipo.find((item) => item.equipo_id === equipo.id);
-    if (previa?.activo) {
-      setErrorAsignacionEquipo('Este equipo ya tiene asignada la rutina.');
-      return;
-    }
-
-    setGuardandoAsignacionEquipo(true);
-    try {
-      const { data: autenticacion, error: errorAutenticacion } = await supabase.auth.getUser();
-      if (errorAutenticacion || autenticacion?.user?.id !== usuarioId) {
-        throw new Error('No se pudo verificar la sesión del entrenador.');
-      }
-
-      // Comprobación adicional en el cliente. La protección definitiva corresponde a RLS.
-      const { data: membresia, error: errorMembresia } = await supabase
-        .from('usuario_equipo')
-        .select('id')
-        .eq('usuario_id', usuarioId)
-        .eq('equipo_id', equipo.id)
-        .eq('funcion_en_equipo', 'ENTRENADOR')
-        .eq('activo', true)
-        .maybeSingle();
-      if (errorMembresia) throw errorMembresia;
-      if (!membresia) {
-        setErrorAsignacionEquipo('Ya no tienes acceso como entrenador a ese equipo.');
-        return;
-      }
-
-      const datos = {
-        asignado_por: usuarioId,
-        fecha_asignacion: new Date().toISOString(),
-        activo: true,
-      };
-
-      // Reutilizar la asignación desactivada, si ya existía.
-      const resultado = previa
-        ? await supabase
-            .from('rutina_equipo')
-            .update(datos)
-            .eq('id', previa.id)
-            .eq('rutina_id', rutina.id)
-            .eq('equipo_id', equipo.id)
-            .select('id, equipo_id, activo')
-            .single()
-        : await supabase
-            .from('rutina_equipo')
-            .insert({ rutina_id: rutina.id, equipo_id: equipo.id, ...datos })
-            .select('id, equipo_id, activo')
-            .single();
-
-      if (resultado.error) throw resultado.error;
-
-      setAsignacionesEquipo((actuales) => [
-        ...actuales.filter((item) => item.equipo_id !== equipo.id),
-        resultado.data,
-      ]);
-      setEquipoElegido('');
-      setMensajeAsignacionEquipo(`La rutina se asignó correctamente a ${equipo.nombre}.`);
-    } catch (error) {
-      console.error('Error al asignar rutina a equipo:', error);
-      if (error.code === '42501') {
-        setErrorAsignacionEquipo('Supabase rechazó la asignación por permisos (RLS). Revisa la consola.');
-      } else if (error.code === '23505') {
-        setErrorAsignacionEquipo('Esta asignación ya existe. Cierra y vuelve a abrir el panel para actualizar.');
-      } else {
-        setErrorAsignacionEquipo('No se pudo asignar la rutina al equipo. Revisa la consola para ver el error.');
-      }
-    } finally {
-      setGuardandoAsignacionEquipo(false);
-    }
-  };
-
-  const equiposAsignados = equiposDisponibles.filter((equipo) =>
-    asignacionesEquipo.some((asignacion) =>
-      asignacion.equipo_id === equipo.id && asignacion.activo
-    )
-  );
-  const equiposPendientes = equiposDisponibles.filter((equipo) =>
-    !asignacionesEquipo.some((asignacion) =>
-      asignacion.equipo_id === equipo.id && asignacion.activo
-    )
-  );
 
   const deportistasAsignados = deportistasDisponibles.filter((deportista) =>
     asignacionesRutina.some((asignacion) =>
@@ -1053,22 +860,13 @@ export default function RutinasEntrenador({ usuarioId }) {
     <button
       type="button"
       className="ath-rt-primary"
-      disabled={cargandoAsignaciones || guardandoAsignacion || cargandoEquipos || guardandoAsignacionEquipo}
+      disabled={cargandoAsignaciones || guardandoAsignacion}
       onClick={() => abrirAsignaciones(rutina)}
       aria-expanded={rutinaParaAsignar === rutina.id}
     >
       {rutinaParaAsignar === rutina.id ? 'Cerrar asignación' : 'Asignar deportista'}
     </button>
 
-    <button
-      type="button"
-      className="ath-rt-secondary"
-      disabled={cargandoEquipos || guardandoAsignacionEquipo || cargandoAsignaciones || guardandoAsignacion}
-      onClick={() => abrirAsignacionesEquipo(rutina)}
-      aria-expanded={rutinaParaAsignarEquipo === rutina.id}
-    >
-      {rutinaParaAsignarEquipo === rutina.id ? 'Cerrar equipos' : 'Asignar equipo'}
-    </button>
   </>
 )}
 
@@ -1111,153 +909,54 @@ export default function RutinasEntrenador({ usuarioId }) {
                   </div>
                 </div>
                 {rutinaParaAsignar === rutina.id && (
-                  <div className="ath-rt-assign">
-                    <h5>Asignar rutina a un deportista</h5>
-                    <p className="ath-rt-muted">
-                      Elige un deportista al que tengas acceso. La rutina aparecerá en su sección «Mis rutinas».
-                    </p>
-
+                  <div className="ath-rt-assign" aria-label="Asignaciones de la rutina">
+                    <div className="ath-rt-assign-heading">
+                      <div>
+                        <h5>Asignar a deportistas</h5>
+                        <p className="ath-rt-muted">Selecciona un deportista y confirma. La rutina aparecerá en «Mis rutinas» de su cuenta.</p>
+                      </div>
+                      <button type="button" className="ath-rt-assign-close" onClick={() => abrirAsignaciones(rutina)} disabled={guardandoAsignacion} aria-label="Cerrar asignaciones">Cerrar</button>
+                    </div>
                     {cargandoAsignaciones ? (
-                      <p className="ath-rt-muted ath-rt-assign-loading">Cargando deportistas...</p>
+                      <p className="ath-rt-muted" role="status">Cargando deportistas...</p>
                     ) : (
                       <>
-                        {errorAsignacion && (
-                          <div className="ath-rt-error" role="alert">{errorAsignacion}</div>
-                        )}
-                        {mensajeAsignacion && (
-                          <div className="ath-rt-success" role="status">{mensajeAsignacion}</div>
-                        )}
-
+                        {errorAsignacion && <div className="ath-rt-error" role="alert">{errorAsignacion}</div>}
+                        {mensajeAsignacion && <div className="ath-rt-success" role="status">{mensajeAsignacion}</div>}
                         {!errorAsignacion && deportistasDisponibles.length === 0 ? (
-                          <p className="ath-rt-assign-note">
-                            No hay deportistas disponibles para tu cuenta. Comprueba que el administrador
-                            haya asignado deportistas a uno de tus equipos.
-                          </p>
-                        ) : errorAsignacion && deportistasDisponibles.length === 0 ? null : (
+                          <div className="ath-rt-assign-empty">
+                            <strong>No hay deportistas disponibles</strong>
+                            <p>El administrador debe registrar o habilitar deportistas para que aparezcan aquí. Si ya existen, revisa los permisos de acceso del entrenador.</p>
+                          </div>
+                        ) : (
                           <>
-                            <form className="ath-rt-assign-form" onSubmit={asignarRutinaADeportista}>
-                              <label className="ath-rt-field ath-rt-assign-field">
-                                Deportista
-                                <select
-                                  value={deportistaElegido}
-                                  onChange={(evento) => setDeportistaElegido(evento.target.value)}
-                                  disabled={guardandoAsignacion || rutina.estado !== 'ACTIVA' || deportistasPendientes.length === 0}
-                                >
-                                  <option value="">Seleccionar deportista...</option>
-                                  {deportistasPendientes.map((deportista) => (
-                                    <option value={deportista.id} key={deportista.id}>
-                                      {deportista.nombre}
-                                    </option>
-                                  ))}
-                                </select>
-                              </label>
-                              <button
-                                type="submit"
-                                className="ath-rt-primary"
-                                disabled={guardandoAsignacion || !deportistaElegido || rutina.estado !== 'ACTIVA'}
-                              >
-                                {guardandoAsignacion ? 'Asignando...' : 'Confirmar asignación'}
-                              </button>
-                            </form>
-                            {rutina.estado !== 'ACTIVA' && (
-                              <p className="ath-rt-assign-note">Esta rutina no está activa y no puede asignarse.</p>
-                            )}
-                            {deportistasPendientes.length === 0 && (
-                              <p className="ath-rt-muted">Todos los deportistas disponibles ya tienen esta rutina.</p>
+                            {deportistasPendientes.length > 0 ? (
+                              <form className="ath-rt-assign-form" onSubmit={asignarRutinaADeportista}>
+                                <label className="ath-rt-field ath-rt-assign-field">
+                                  Deportista sin esta rutina
+                                  <select value={deportistaElegido} onChange={(evento) => setDeportistaElegido(evento.target.value)} disabled={guardandoAsignacion || rutina.estado !== 'ACTIVA'}>
+                                    <option value="">Seleccionar deportista...</option>
+                                    {deportistasPendientes.map((deportista) => <option key={deportista.id} value={deportista.id}>{deportista.nombre}</option>)}
+                                  </select>
+                                </label>
+                                <button type="submit" className="ath-rt-primary ath-rt-assign-submit" disabled={guardandoAsignacion || !deportistaElegido || rutina.estado !== 'ACTIVA'}>
+                                  {guardandoAsignacion ? 'Asignando...' : 'Asignar rutina'}
+                                </button>
+                              </form>
+                            ) : (
+                              <div className="ath-rt-assign-empty">
+                                <strong>Todos los deportistas disponibles ya tienen esta rutina</strong>
+                                <p>No necesitas volver a asignarla. Para agregar otro deportista, el administrador debe incorporarlo o habilitar su acceso.</p>
+                              </div>
                             )}
                             <div className="ath-rt-assigned">
-                              <h6>Deportistas asignados ({deportistasAsignados.length})</h6>
-                              {deportistasAsignados.length === 0 ? (
-                                <p className="ath-rt-muted">Todavía no hay asignaciones individuales para esta rutina.</p>
-                              ) : (
-                                <ul>
-                                  {deportistasAsignados.map((deportista) => (
-                                    <li key={deportista.id}>
-                                      <span>{deportista.nombre}</span>
-                                      <span className="ath-rt-assigned-status">Asignada</span>
-                                    </li>
-                                  ))}
-                                </ul>
+                              <h6>Ya tienen esta rutina ({deportistasAsignados.length})</h6>
+                              {deportistasAsignados.length === 0 ? <p className="ath-rt-muted">Aún no hay asignaciones.</p> : (
+                                <ul>{deportistasAsignados.map((deportista) => <li key={deportista.id}><span>{deportista.nombre}</span><span className="ath-rt-assigned-status">Asignada</span></li>)}</ul>
                               )}
                             </div>
                           </>
                         )}
-                      </>
-                    )}
-                  </div>
-                )}
-                {rutinaParaAsignarEquipo === rutina.id && (
-                  <div className="ath-rt-assign ath-rt-assign-team">
-                    <h5>Asignar rutina a un equipo</h5>
-                    <p className="ath-rt-muted">
-                      Todos los deportistas activos de este equipo podrán consultar la rutina en «Mis rutinas».
-                    </p>
-
-                    {cargandoEquipos ? (
-                      <p className="ath-rt-muted ath-rt-assign-loading">Cargando equipos...</p>
-                    ) : (
-                      <>
-                        {errorAsignacionEquipo && (
-                          <div className="ath-rt-error" role="alert">{errorAsignacionEquipo}</div>
-                        )}
-                        {mensajeAsignacionEquipo && (
-                          <div className="ath-rt-success" role="status">{mensajeAsignacionEquipo}</div>
-                        )}
-
-                        {equiposDisponibles.length === 0 && !errorAsignacionEquipo ? (
-                          <p className="ath-rt-assign-note">
-                            No tienes equipos activos asignados como entrenador. Pide al administrador
-                            que te vincule a un equipo antes de asignar rutinas.
-                          </p>
-                        ) : equiposDisponibles.length > 0 ? (
-                          <>
-                            <form className="ath-rt-assign-form" onSubmit={asignarRutinaAEquipo}>
-                              <label className="ath-rt-field ath-rt-assign-field">
-                                Equipo
-                                <select
-                                  value={equipoElegido}
-                                  onChange={(evento) => setEquipoElegido(evento.target.value)}
-                                  disabled={guardandoAsignacionEquipo || rutina.estado !== 'ACTIVA' || equiposPendientes.length === 0}
-                                >
-                                  <option value="">Seleccionar equipo...</option>
-                                  {equiposPendientes.map((equipo) => (
-                                    <option value={equipo.id} key={equipo.id}>{equipo.nombre}</option>
-                                  ))}
-                                </select>
-                              </label>
-                              <button
-                                type="submit"
-                                className="ath-rt-primary"
-                                disabled={guardandoAsignacionEquipo || !equipoElegido || rutina.estado !== 'ACTIVA'}
-                              >
-                                {guardandoAsignacionEquipo ? 'Asignando...' : 'Confirmar asignación'}
-                              </button>
-                            </form>
-                            {rutina.estado !== 'ACTIVA' && (
-                              <p className="ath-rt-assign-note">Esta rutina no está activa y no puede asignarse.</p>
-                            )}
-                            {equiposPendientes.length === 0 && (
-                              <p className="ath-rt-muted ath-rt-team-all-assigned">
-                                Todos tus equipos disponibles ya tienen esta rutina.
-                              </p>
-                            )}
-                            <div className="ath-rt-assigned">
-                              <h6>Equipos asignados ({equiposAsignados.length})</h6>
-                              {equiposAsignados.length === 0 ? (
-                                <p className="ath-rt-muted">Todavía no hay equipos asignados a esta rutina.</p>
-                              ) : (
-                                <ul>
-                                  {equiposAsignados.map((equipo) => (
-                                    <li key={equipo.id}>
-                                      <span>{equipo.nombre}</span>
-                                      <span className="ath-rt-assigned-status">Asignada</span>
-                                    </li>
-                                  ))}
-                                </ul>
-                              )}
-                            </div>
-                          </>
-                        ) : null}
                       </>
                     )}
                   </div>
