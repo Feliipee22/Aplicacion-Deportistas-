@@ -317,3 +317,8 @@
 @media (max-width:850px) {
   .match-tabs { top:56px; z-index:5; }
 }
+
+.match-comment-context{color:#728391;font-weight:400;font-size:12px}
+
+/* Respuesta sutil integrada al hilo */
+.match-comment-reply{display:inline-flex;align-items:center;gap:5px;margin-top:3px;padding:6px 9px;border:1px solid transparent;border-radius:999px;background:transparent;color:#657986;font-size:12px;font-weight:650;line-height:1.2;transition:background .15s,color .15s}.match-comment-reply:hover,.match-comment-reply:focus-visible{background:#e6edf0;color:#17384b}.match-comment-reply span{font-size:17px;line-height:1}

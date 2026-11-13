@@ -503,7 +503,7 @@ export default function AthletixMatch({ perfil, partidoDestacadoId = null }) {
           .select('id, nombre, rol_id, apodo_publico').in('id', ids);
         if (errorAutores) {
           console.warn('Athletix Match: perfiles de autores no disponibles', errorAutores);
-          setAutoresMuro({});
+          // Conservar nombres de comentarios ya cargados.
         } else {
           const idsRoles = [...new Set((usuariosMuro || []).map(u => u.rol_id).filter(id => id != null))];
           let nombresRoles = {};
@@ -512,12 +512,12 @@ export default function AthletixMatch({ perfil, partidoDestacadoId = null }) {
               .select('id, nombre').in('id', idsRoles);
             if (!errorRoles) nombresRoles = Object.fromEntries((rolesMuro || []).map(r => [r.id, r.nombre]));
           }
-          setAutoresMuro(Object.fromEntries((usuariosMuro || []).map(u => [u.id, {
+          setAutoresMuro(prev => ({...prev,...Object.fromEntries((usuariosMuro || []).map(u => [u.id, {
             nombre: u.apodo_publico || u.nombre,
             rol: nombresRoles[u.rol_id] || ({ 1: 'Administrador', 2: 'Entrenador', 3: 'Deportista' }[u.rol_id] || 'Miembro'),
-          }])));
+          }]))}));
         }
-      } else setAutoresMuro({});
+      }
     }
     setCargandoMuro(false);
   }, []);
@@ -955,11 +955,11 @@ export default function AthletixMatch({ perfil, partidoDestacadoId = null }) {
             </button>
             {hiloAbierto === m.id && <div className="match-comments">
               {comentarios.filter(c => c.publicacion_id === m.id).map(c => <div className="match-comment" key={c.id} style={{ marginLeft: c.respuesta_a ? 14 : 0 }}>
-                <strong>{(autoresMuro[c.usuario_id]?.nombre || (c.usuario_id === perfil.id ? 'Tú' : 'Miembro'))}</strong>
-                {c.respuesta_a && <small> · Respuesta</small>}
+                <strong>{(autoresMuro[c.usuario_id]?.nombre || (c.usuario_id === perfil.id ? (perfil.apodo_publico || perfil.nombre || 'Tú') : 'Usuario no disponible'))}</strong>
+                {c.respuesta_a && <small> · Respuesta</small>}<small className="match-comment-context"> · {formatearFecha(c.creado_en)}</small>
                 {editarMuro?.tipo === 'comentario' && editarMuro.id === c.id ? <div className="match-inline-editor"><textarea value={textoEdicion} maxLength={500} onChange={e => setTextoEdicion(e.target.value)} aria-label="Editar comentario"/><div className="match-manage-actions"><button type="button" onClick={guardarEdicionMuro} disabled={procesandoMuro || !textoEdicion.trim()}>Guardar</button><button type="button" onClick={() => setEditarMuro(null)}>Cancelar</button></div></div> : <p>{c.mensaje}</p>}
                 {puedeGestionar(c.usuario_id) && <div className="match-manage-actions">{puedeEditar(c.usuario_id) && <button type="button" onClick={() => { setEditarMuro({ tipo: 'comentario', id: c.id }); setTextoEdicion(c.mensaje); setErrorGestion(''); }}>Editar</button>}<button type="button" className="match-delete-action" onClick={() => { setAccionMuro({ tipo: 'comentario', id: c.id }); setErrorGestion(''); }}>Eliminar</button></div>}
-                <button type="button" className="match-comment-reply" onClick={() => { setRespuestaA(c.id); setTextoComentario(''); }}>Responder</button>
+                <button type="button" className="match-comment-reply" onClick={() => { setRespuestaA(c.id); setTextoComentario(''); }}><span aria-hidden="true">↳</span> Responder</button>
               </div>)}
               {errorComentarios && <p className="match-error" role="alert">{errorComentarios}</p>}
               <form onSubmit={e => enviarComentario(e, m.id)} className="match-comment-form">

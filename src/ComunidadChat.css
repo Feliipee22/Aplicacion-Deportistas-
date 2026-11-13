@@ -8,3 +8,32 @@
 .ath-chat-messages article p{overflow-wrap:anywhere}
 .ath-chat-moderate{width:auto;max-width:100%;min-height:40px;font-size:12px;line-height:1.2;text-align:center}
 @media(max-width:480px){.ath-chat-messages article{max-width:88%;padding:12px}.ath-chat-messages article.mine{margin-left:auto}.ath-chat-moderate{margin-top:10px;padding:9px 12px}.ath-chat-window{max-width:100%;height:min(67dvh,600px)}}
+
+.ath-chat-optin{display:flex;align-items:center;gap:10px;font-weight:700;font-size:14px}.ath-chat-optin input{width:20px;height:20px;accent-color:#2e774d}.ath-chat-hint{font-size:13px;color:#627482;line-height:1.5;margin:9px 0}.ath-chat-online-list{display:grid;gap:8px}.ath-chat-online-list button{display:flex;align-items:center;gap:10px;width:100%;padding:13px;border:1px solid #dce5eb;border-radius:12px;background:#f9fcfa;color:#172a3a;text-align:left;font-weight:700;cursor:pointer}.ath-chat-dot{width:9px;height:9px;flex-shrink:0;border-radius:50%;background:#38a86d}.ath-chat-online-label{margin-left:auto;color:#286344;font-size:12px}
+
+/* Bandeja de mensajes y creación de grupos sin selectores nativos gigantes */
+.ath-chat-section-heading{display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap}.ath-chat-section-heading h3{margin:0 0 12px;font-size:17px}.ath-chat-section-heading span{font-size:12px;color:#71818e}.ath-chat-search-label{display:block;font-weight:700;font-size:12px;margin:4px 0 8px}.ath-chat-search{display:block;width:100%;border:1px solid #cfdee7;border-radius:12px;background:#f8fafb;color:#183246;padding:13px 14px;font:inherit;outline-offset:3px}.ath-chat-results{display:grid;gap:6px;margin-top:10px;max-height:240px;overflow:auto}.ath-chat-results>button{display:flex;align-items:center;gap:10px;padding:10px;border:1px solid #e0e8ed;background:#fff;border-radius:12px;text-align:left;color:#183246;cursor:pointer;font:inherit;font-weight:600}.ath-chat-results>p{color:#657b87;font-size:13px}.ath-chat-person-avatar{display:grid;place-items:center;width:35px;height:35px;flex-shrink:0;border-radius:50%;background:#e7f4db;color:#29533d;font-weight:800}.ath-chat-start{margin-left:auto;font-size:12px;color:#29664b}.ath-chat-create h3{margin:0 0 14px}.ath-chat-create>button[type=submit]:disabled{opacity:.45;cursor:not-allowed}.ath-chat-selected{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px}.ath-chat-selected button{border:1px solid #cce2d4;border-radius:999px;background:#eaf8eb;padding:7px 11px;color:#23503b;font-weight:650;cursor:pointer}.ath-chat-selected span{margin-left:5px;font-size:17px}.ath-chat-list button{cursor:pointer}
+
+/* v3: contactos conectados con Supabase Realtime Presence */
+.ath-chat-presence{padding:12px 0 14px;margin-bottom:12px;border-bottom:1px solid #e4ebef}
+.ath-chat-presence-title{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:800;color:#1b3545;margin-bottom:10px}
+.ath-chat-presence-count{margin-left:auto;background:#e9f6e6;color:#326344;border-radius:999px;padding:3px 9px;font-size:12px}
+.ath-chat-presence-empty{margin:0;color:#70818b;font-size:13px;line-height:1.5}
+.ath-chat-online-list{max-height:220px;overflow-y:auto}
+.ath-chat-online-list button{min-height:52px}
+
+/* v4: presencia propia y estado de los resultados de búsqueda */
+.ath-chat-self{display:flex;align-items:center;gap:10px;padding:10px 11px;margin-bottom:9px;border:1px solid #dbe9df;border-radius:12px;background:#f5fbf5;min-width:0}
+.ath-chat-self-name{flex:1;min-width:0;font-size:13px;font-weight:700;overflow-wrap:anywhere}
+.ath-chat-self-name strong{color:#607b68;font-weight:600}
+.ath-chat-contact-status{display:inline-flex;align-items:center;gap:5px;margin-left:auto;flex-shrink:0;font-size:11px;font-weight:700;white-space:nowrap;color:#7b858d}
+.ath-chat-contact-status.is-online{color:#26754a}
+.ath-chat-status-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#b4bdc3;flex-shrink:0}
+.ath-chat-contact-status.is-online .ath-chat-status-dot{background:#35a96c}
+.ath-chat-contact-status.is-offline .ath-chat-status-dot{background:#d46c72}
+.ath-chat-group-result-end{margin-left:auto;display:flex;align-items:flex-end;flex-direction:column;gap:3px}
+.ath-chat-add-label{font-size:11px;color:#2c684c}
+.ath-chat-results>button>span:nth-child(2){min-width:0;overflow-wrap:anywhere}
+@media(max-width:420px){.ath-chat-contact-status{font-size:10px}.ath-chat-self{padding:9px 7px;gap:7px}.ath-chat-person-avatar{width:31px;height:31px}.ath-chat-results>button{gap:7px}}
+
+.ath-chat-contact-status.is-away .ath-chat-status-dot{background:#e6a23c;box-shadow:0 0 0 2px rgba(230,162,60,.13)}

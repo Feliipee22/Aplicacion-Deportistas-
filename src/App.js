@@ -1,3 +1,4 @@
+import {AthletixPresenceProvider} from './AthletixPresence';
 
 import React, { useEffect, useState } from 'react';
 import { supabase } from './supabase';
@@ -162,11 +163,13 @@ function App() {
   }
 
   return (
+  <AthletixPresenceProvider perfil={perfil}>
   <Dashboard
     perfil={perfil}
     onCerrarSesion={cerrarSesion}
     onPerfilActualizado={actualizarPerfil}
   />
+  </AthletixPresenceProvider>
 );
 }
 
