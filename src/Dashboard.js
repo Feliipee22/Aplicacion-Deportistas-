@@ -31,6 +31,13 @@ function IconoModulo({ tipo }) {
         <path d="M9 21v-7h6v7" />
       </>
     ),
+    vinculos: (
+      <>
+        <circle cx="9" cy="7" r="3" />
+        <path d="M3 20v-2a6 6 0 0 1 10-4.5" />
+        <path d="m15 17 2 2 4-5" />
+      </>
+    ),
     usuarios: (
       <>
         <circle cx="9" cy="8" r="3" />

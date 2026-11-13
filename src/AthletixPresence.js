@@ -39,7 +39,13 @@ export function AthletixPresenceProvider({ perfil, children }) {
       marcando = true;
       try {
         const { error } = await supabase.rpc('ath_marcar_presencia', { p_primer_plano: primerPlano });
-        if (!error && activo) await actualizar();
+        if (!error && activo) {
+          // La RPC confirmó el heartbeat: reflejarlo inmediatamente en el estado propio.
+          // No depender de que la lectura general o el canal Realtime respondan a tiempo.
+          setRegistros(prev => ({...prev, [id]: {usuario_id:id, ultima_actividad:new Date().toISOString(), en_primer_plano:primerPlano}}));
+          setAhora(Date.now());
+          await actualizar();
+        }
       } finally { marcando = false; }
     };
     const alCambiarVisibilidad = () => { void marcar(document.visibilityState === 'visible'); };

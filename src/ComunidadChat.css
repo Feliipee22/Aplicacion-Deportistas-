@@ -37,3 +37,20 @@
 @media(max-width:420px){.ath-chat-contact-status{font-size:10px}.ath-chat-self{padding:9px 7px;gap:7px}.ath-chat-person-avatar{width:31px;height:31px}.ath-chat-results>button{gap:7px}}
 
 .ath-chat-contact-status.is-away .ath-chat-status-dot{background:#e6a23c;box-shadow:0 0 0 2px rgba(230,162,60,.13)}
+
+/* v7: bandeja independiente y conversación a pantalla completa */
+.ath-chat--conversation{max-width:100%;min-height:calc(100dvh - 190px)}
+.ath-chat--conversation .ath-chat-window{height:calc(100dvh - 205px);min-height:430px;max-width:900px;margin:0 auto;border-radius:18px}
+.ath-chat-back{flex-shrink:0;border:0;background:#eef4f5;color:#172a3a;border-radius:12px;width:42px;height:42px;font-size:29px;line-height:1;cursor:pointer}
+.ath-chat-window-head>div{min-width:0}.ath-chat-window-head h3{overflow-wrap:anywhere}
+.ath-chat-window-head small .ath-chat-contact-status{margin-left:0;font-size:12px}
+.ath-chat-list{margin:12px 0 18px}.ath-chat-list button{display:flex;align-items:center;gap:12px;min-height:69px}
+.ath-chat-list-title{flex:1;display:grid;gap:4px;min-width:0}.ath-chat-list-title strong{font-size:14px}.ath-chat-list-title small{font-size:12px;font-weight:500;color:#637887}
+.ath-chat-list-title .ath-chat-contact-status{margin:0}.ath-chat-list button>span:last-child{font-size:24px;color:#78909b}
+.ath-chat-requests{border:1px solid #dce5eb;background:#fff;border-radius:16px;padding:16px;margin:14px 0}
+.ath-chat-requests h3{font-size:16px;margin:0 0 12px}.ath-chat-requests h3 span{background:#e7f6db;border-radius:100px;padding:3px 9px;color:#315e38}
+.ath-chat-request{padding:13px 0;border-top:1px solid #e9eff1;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.ath-chat-request>div:first-child{display:grid;gap:5px}.ath-chat-request small{color:#667b88}
+.ath-chat-request-actions{display:flex;gap:7px}.ath-chat-request-actions button{padding:9px 13px;border-radius:10px;border:1px solid #d5e1e6;background:#fff;color:#203a48;font-weight:700;cursor:pointer}
+.ath-chat-request-actions button:first-child{background:#c6f58a;border-color:#c6f58a;color:#193327}
+@media(max-width:650px){.ath-chat--conversation{margin:-4px -10px 0}.ath-chat--conversation .ath-chat-window{height:calc(100dvh - 175px);border-radius:14px}.ath-chat-window-head{padding:12px}.ath-chat-request{flex-direction:column}}

@@ -1,16 +1,16 @@
 {
   "files": {
-    "main.css": "/static/css/main.7a7ed4d2.css",
-    "main.js": "/static/js/main.1aa7779c.js",
+    "main.css": "/static/css/main.b3204cce.css",
+    "main.js": "/static/js/main.345f114b.js",
     "static/js/453.7d693a5e.chunk.js": "/static/js/453.7d693a5e.chunk.js",
     "static/media/athletix-logo.jpg": "/static/media/athletix-logo.2ac1c5ace18837c38c89.jpg",
     "index.html": "/index.html",
-    "main.7a7ed4d2.css.map": "/static/css/main.7a7ed4d2.css.map",
-    "main.1aa7779c.js.map": "/static/js/main.1aa7779c.js.map",
+    "main.b3204cce.css.map": "/static/css/main.b3204cce.css.map",
+    "main.345f114b.js.map": "/static/js/main.345f114b.js.map",
     "453.7d693a5e.chunk.js.map": "/static/js/453.7d693a5e.chunk.js.map"
   },
   "entrypoints": [
-    "static/css/main.7a7ed4d2.css",
-    "static/js/main.1aa7779c.js"
+    "static/css/main.b3204cce.css",
+    "static/js/main.345f114b.js"
   ]
 }
