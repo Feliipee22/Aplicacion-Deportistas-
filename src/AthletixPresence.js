@@ -3,15 +3,13 @@ import { supabase } from './supabase';
 
 const Context = createContext({ onlineIds: [], connected: false, estados: {}, estadoDe: () => 'desconectado' });
 const CHANNEL = 'athletix-app-presence-v2';
-const GRACIA_SEGUNDO_PLANO_MS = 5 * 60 * 1000;
 const LIMITE_AUSENTE_MS = 30 * 60 * 1000;
 
 function calcularEstado(registro, ahora) {
   if (!registro?.ultima_actividad) return 'desconectado';
   const transcurrido = ahora - new Date(registro.ultima_actividad).getTime();
-  if (!Number.isFinite(transcurrido) || transcurrido < 0 || transcurrido > LIMITE_AUSENTE_MS) return 'desconectado';
-  if (transcurrido <= GRACIA_SEGUNDO_PLANO_MS) return 'en-linea';
-  return 'ausente';
+  if (!Number.isFinite(transcurrido) || transcurrido > LIMITE_AUSENTE_MS) return 'desconectado';
+  return 'en-linea';
 }
 
 export function AthletixPresenceProvider({ perfil, children }) {
@@ -30,8 +28,13 @@ export function AthletixPresenceProvider({ perfil, children }) {
         .select('usuario_id, ultima_actividad, en_primer_plano')
         .gte('ultima_actividad', new Date(Date.now() - LIMITE_AUSENTE_MS).toISOString())
         .limit(1000);
-      if (!activo || error) return;
-      setRegistros(Object.fromEntries((data || []).map(fila => [String(fila.usuario_id), fila])));
+      if (!activo) return;
+      if (error) { console.warn('Lectura de presencia:', error.message); return; }
+      setRegistros(prev => {
+        const next = Object.fromEntries((data || []).map(fila => [String(fila.usuario_id), fila]));
+        if (prev[id] && (!next[id] || new Date(prev[id].ultima_actividad) > new Date(next[id].ultima_actividad))) next[id] = prev[id];
+        return next;
+      });
       setAhora(Date.now());
     };
     const marcar = async (primerPlano) => {
@@ -39,6 +42,7 @@ export function AthletixPresenceProvider({ perfil, children }) {
       marcando = true;
       try {
         const { error } = await supabase.rpc('ath_marcar_presencia', { p_primer_plano: primerPlano });
+        if (error) console.warn('Heartbeat de presencia:', error.message);
         if (!error && activo) {
           // La RPC confirmó el heartbeat: reflejarlo inmediatamente en el estado propio.
           // No depender de que la lectura general o el canal Realtime respondan a tiempo.
@@ -67,7 +71,7 @@ export function AthletixPresenceProvider({ perfil, children }) {
     const intervalo = window.setInterval(() => {
       setAhora(Date.now());
       void actualizar();
-      if (document.visibilityState === 'visible') void marcar(true);
+      void marcar(document.visibilityState === 'visible');
     }, 60000);
     document.addEventListener('visibilitychange', alCambiarVisibilidad);
     window.addEventListener('focus', alVolver);

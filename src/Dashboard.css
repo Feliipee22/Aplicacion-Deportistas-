@@ -1609,3 +1609,19 @@
 .ath-confirm-accept{background:#c5f17b;color:#1b3014;border:1px solid #b4df69}
 .ath-confirm-actions button:disabled{opacity:.6;cursor:wait}
 @media(max-width:680px){.ath-admin-user-list{grid-template-columns:minmax(0,1fr)}.ath-admin-user-card{padding:14px}.ath-admin-filters{gap:9px}.ath-admin-filters label{flex:1;min-width:110px}.ath-admin-filters select{width:100%;min-width:0}.ath-confirm-dialog{padding:21px 17px}}
+
+/* Navegación independiente del contenido, también en pantallas bajas. */
+@media (min-width: 851px) {
+ .ath-sidebar { position: sticky; top: 0; align-self: start; height: 100vh; height: 100dvh; max-height: 100dvh; overflow-y: auto; gap: 16px; padding-block: 18px; }
+ .ath-sidebar .ath-brand { flex-shrink: 0; }
+ .ath-navigation { flex: 1 1 0; min-height: 100px; overflow-y: auto; overflow-x: hidden; }
+ .ath-nav-button { flex-shrink: 0; }
+}
+@media (max-width: 850px) {
+ .ath-mobile-bar { height: 64px; flex-shrink: 0; }
+ .ath-main { scroll-margin-top: 76px; }
+ .ath-topbar { scroll-margin-top: 76px; }
+ .ath-sidebar { overflow-y: auto; }
+ .ath-navigation { min-height: 90px; }
+ .ath-nav-button { flex-shrink: 0; }
+}

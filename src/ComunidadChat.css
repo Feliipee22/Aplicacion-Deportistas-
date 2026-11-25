@@ -54,3 +54,13 @@
 .ath-chat-request-actions{display:flex;gap:7px}.ath-chat-request-actions button{padding:9px 13px;border-radius:10px;border:1px solid #d5e1e6;background:#fff;color:#203a48;font-weight:700;cursor:pointer}
 .ath-chat-request-actions button:first-child{background:#c6f58a;border-color:#c6f58a;color:#193327}
 @media(max-width:650px){.ath-chat--conversation{margin:-4px -10px 0}.ath-chat--conversation .ath-chat-window{height:calc(100dvh - 175px);border-radius:14px}.ath-chat-window-head{padding:12px}.ath-chat-request{flex-direction:column}}
+
+/* Bandeja y mensajes */
+.ath-chat-preview{font-size:13px;font-weight:400;color:#637887;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block;min-width:0}
+.ath-chat-list-meta{display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0}
+.ath-chat-list-meta small{font-size:11px;font-weight:500;color:#637887}
+.ath-chat-date{align-self:center;font-size:11px;color:#536b79;background:#e8eef1;border-radius:20px;padding:5px 12px;flex-shrink:0}
+.ath-chat-message-row{display:flex;align-items:flex-end;gap:8px;min-width:0;flex-shrink:0}
+.ath-chat-message-row.mine{justify-content:flex-end}
+.ath-chat-message-row article{align-self:auto;max-width:min(85%,460px)}
+.ath-chat-message-row .ath-chat-person-avatar{width:28px;height:28px;font-size:12px}
