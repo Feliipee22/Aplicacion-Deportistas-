@@ -1,10 +1,12 @@
+import SeguimientoRutina, {HistorialRutinas} from './SeguimientoRutina';
 import EntrenadorIAPro from './EntrenadorIAPro';
 import React, { useEffect, useState } from 'react';
 import { supabase } from './supabase';
 import VideoEjercicio from './VideoEjercicio';
 
 export default function MisRutinas({ usuarioId, soloVideos = false, programacionInicial = null }) {
-  const [seccion,setSeccion] = useState('ia');
+  const [seccion,setSeccion] = useState('entrenador');
+  const [guiada,setGuiada]=useState(false); const [version,setVersion]=useState(0);
   const [rutinas, setRutinas] = useState([]);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState('');
@@ -119,6 +121,7 @@ export default function MisRutinas({ usuarioId, soloVideos = false, programacion
     setCargandoEjercicios(false);
   };
 
+  if(guiada && rutinaAbierta) return <SeguimientoRutina rutina={rutinaAbierta} ejercicios={ejercicios} onBack={()=>setGuiada(false)} onSaved={()=>{setGuiada(false);setVersion(v=>v+1);setRutinaAbierta(null);}}/>;
   return (
     <section className="ath-routines">
       {!soloVideos && <nav className="ath-rutinas-tabs" aria-label="Tipos de entrenamiento">
@@ -188,6 +191,7 @@ export default function MisRutinas({ usuarioId, soloVideos = false, programacion
 
               {rutinaAbierta?.id === rutina.id && (
                 <div className="ath-routine-details">
+                  {!soloVideos && !cargandoEjercicios && ejercicios.length>0 && <button className="ath-routine-button" onClick={()=>setGuiada(true)}>Iniciar entrenamiento</button>}
                   {cargandoEjercicios && (
                     <p>Cargando ejercicios...</p>
                   )}
@@ -277,6 +281,7 @@ export default function MisRutinas({ usuarioId, soloVideos = false, programacion
           ))}
         </div>
       )}
+      {!soloVideos && <HistorialRutinas usuarioId={usuarioId} version={version}/>}
       </>}
     </section>
   );

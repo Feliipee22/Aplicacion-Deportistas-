@@ -20,6 +20,17 @@ export default function AsistenteAthletixIA({ tipo = 'entrenamiento' }) {
   const [error, setError] = useState('');
   const alimentacion = tipo === 'alimentacion';
 
+  async function usarPerfil() {
+    setError('');
+    try {
+      const {data:{user}}=await supabase.auth.getUser();
+      if(!user)throw new Error('Inicia sesión nuevamente.');
+      const {data,error}=await supabase.from('ath_perfil_deportivo').select('*').eq('usuario_id',user.id).maybeSingle();
+      if(error || !data?.usar_ia)throw new Error('Activa la personalización en tu perfil deportivo.');
+      setNivel(data.nivel);setDeporte(data.deporte);setFrecuencia(String(data.frecuencia));setPreferencias(data.preferencias);
+      if(OPCIONES[tipo].includes(data.objetivo))setObjetivo(data.objetivo);
+    }catch(e){setError(e.message);}
+  }
   async function consultar(e) {
     e.preventDefault();
     if (cargando) return;
@@ -33,7 +44,7 @@ export default function AsistenteAthletixIA({ tipo = 'entrenamiento' }) {
       if (errorFuncion) {
         let detalle = '';
         try { const json = await errorFuncion.context?.json(); detalle = json?.error || ''; } catch (_) { /* respuesta no JSON */ }
-        throw new Error(detalle || 'No se pudo contactar al asistente. Comprueba que la función esté desplegada.');
+        throw new Error(detalle || 'No pudimos contactar al asistente. Inténtalo nuevamente.');
       }
       if (!data?.respuesta) throw new Error(data?.error || 'La IA no entregó una respuesta.');
       setRespuesta(data.respuesta);
@@ -44,6 +55,7 @@ export default function AsistenteAthletixIA({ tipo = 'entrenamiento' }) {
   return <section className="ath-ai" aria-label={alimentacion ? 'Asistente de alimentación' : 'Entrenador virtual'}>
     <div className="ath-ai-heading"><span className="ath-ai-spark">✦</span><div><h3>{alimentacion ? 'Tu asistente de alimentación' : 'Tu entrenador virtual'}</h3><p>Recomendaciones personalizadas con inteligencia artificial</p></div></div>
     <form onSubmit={consultar} className="ath-ai-form">
+      {!alimentacion && <button type="button" onClick={usarPerfil} disabled={cargando}>Usar mi perfil deportivo</button>}
       <label>¿Cuál es tu objetivo?<select value={objetivo} onChange={e => setObjetivo(e.target.value)}>{OPCIONES[tipo].map(x => <option key={x}>{x}</option>)}</select></label>
       <div className="ath-ai-grid"><label>Etapa de vida<select value={edadGrupo} onChange={e => setEdadGrupo(e.target.value)}><option value="adulto">18 años o más</option><option value="menor">Menor de 18 años</option></select></label><label>Nivel de actividad<select value={nivel} onChange={e => setNivel(e.target.value)}><option>Principiante</option><option>Intermedio</option><option>Avanzado</option></select></label></div>
       <div className="ath-ai-grid"><label>Deporte (opcional)<input value={deporte} maxLength={80} onChange={e => setDeporte(e.target.value)} placeholder="Ej. fútbol, gimnasio" /></label><label>Entrenamientos por semana<select value={frecuencia} onChange={e => setFrecuencia(e.target.value)}>{['0','1','2','3','4','5','6','7'].map(n => <option key={n} value={n}>{n}</option>)}</select></label></div>

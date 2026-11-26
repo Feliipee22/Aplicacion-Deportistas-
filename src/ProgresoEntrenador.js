@@ -1,3 +1,4 @@
+import {HistorialRutinas} from './SeguimientoRutina';
 import EvaluacionesDeportivas from './EvaluacionesDeportivas';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { supabase } from './supabase';
@@ -99,6 +100,7 @@ export default function ProgresoEntrenador() {
 
     </div>}
     {ficha && <section ref={fichaRef} className="pe-detail" aria-label="Ficha deportiva del deportista"><div className="pe-detail-heading"><div><span className="pe-eyebrow">FICHA DEPORTIVA</span><h3>{ficha.deportista}</h3><p>Deportista</p></div><button type="button" onClick={volver} aria-label="Volver al listado de deportistas">← Volver a deportistas</button></div>      <EvaluacionesDeportivas key={seleccionado} deportistaId={seleccionado} entrenador />
+      <HistorialRutinas usuarioId={seleccionado}/>
       <details className="pe-session-summary"><summary>Resumen de actividad</summary><div className="pe-detail-grid"><div><span>Sesiones / 7 días</span><strong>{numero(ficha.sesiones_7d)}</strong></div><div><span>Sesiones / 30 días</span><strong>{numero(ficha.sesiones_30d)}</strong></div><div><span>Tiempo / 30 días</span><strong>{numero(ficha.minutos_30d)} min</strong></div><div><span>Esfuerzo percibido</span><strong>{promedio(ficha.esfuerzo_promedio_30d)}</strong></div></div><div className="pe-detail-note"><strong>Última sesión registrada</strong><p>{fechaBonita(ficha.ultima_sesion)}</p><p>Las observaciones personales del deportista son privadas.</p></div>
 </details>
       <div className="pe-history">

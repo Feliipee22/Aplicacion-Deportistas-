@@ -32,7 +32,7 @@ export default function EntrenamientoGuiado({ planId, sesionIndex, sesion, progr
     if (!key) return;
     let saved = null;
     try { saved = JSON.parse(localStorage.getItem(key) || 'null'); } catch (_) { /* no stored state */ }
-    const next = saved && typeof saved === 'object' && !Array.isArray(saved) && !saved.finished ? { ...initial(), ...saved } : initial();
+    const next = saved && typeof saved === 'object' && !Array.isArray(saved) && (!saved.finished || String(planId).startsWith('asignada-')) ? { ...initial(), ...saved } : initial();
     next.index = Math.max(0, Math.min(exercises.length - 1, Number(next.index) || 0));
     next.seriesDone = Math.max(0, Number(next.seriesDone) || 0);
     next.completed = Array.isArray(next.completed) ? next.completed.filter(i => Number.isInteger(i) && i >= 0 && i < exercises.length) : [];
@@ -86,7 +86,7 @@ export default function EntrenamientoGuiado({ planId, sesionIndex, sesion, progr
   const finishEarly = () => { setState(s => ({ ...freeze(s), phase: 'summary', finished: true, restUntil: null, restRemaining: 0 })); setConfirmFinish(false); };
   const goBack = () => { if (isRunning) pause(); onBack(); };
   const reset = () => { setState(initial()); setConfirmReset(false); setShowVideo(false); };
-  const register = () => { if (isRunning) pause(); onRegister(Math.max(1, Math.round(seconds))); };
+  const register = () => { if (isRunning) pause(); onRegister(Math.max(1, Math.round(seconds)), exercises.map((e,i)=>({nombre:e.nombre || "Ejercicio",series:state.completed.includes(i)?count(e.series):i===state.index?state.seriesDone:0})).filter(e=>e.series>0)); };
 
   if (!key || !loaded) return <section className="eg-wrap"><p>Preparando tu entrenamiento…</p><button onClick={onBack}>Volver</button></section>;
   if (!exercises.length) return <section className="eg-wrap"><p>Esta sesión todavía no tiene ejercicios.</p><button onClick={onBack}>Volver al plan</button></section>;
