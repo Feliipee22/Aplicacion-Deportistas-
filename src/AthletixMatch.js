@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { MapContainer, Marker, Popup, TileLayer, useMap } from 'react-leaflet';
+import { MapContainer, Marker, Popup, TileLayer, useMap, useMapEvents } from 'react-leaflet';
 import { divIcon } from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { supabase } from './supabase';
@@ -33,12 +33,7 @@ const CIUDADES = [
   { id: 'punta-arenas', nombre: 'Punta Arenas', latitud: -53.1638, longitud: -70.9171 },
 ].map((c) => ({ ...c, radioKm: c.id === 'santiago' ? 16 : 10, zoom: 12 }));
 const ZONA_INICIAL = CIUDADES.find((c) => c.id === 'santiago');
-const OVERPASS_SERVERS = [
-  'https://overpass.kumi.systems/api/interpreter',
-  'https://overpass-api.de/api/interpreter',
-];
-const CACHE_MS = 4 * 60 * 60 * 1000;
-const LIMIT_MOSTRAR = 240;
+const LIMIT_MOSTRAR = 30;
 
 function distanciaKm(lat1, lon1, lat2, lon2) {
   const a = (lat1 - lat2) * Math.PI / 180;
@@ -48,20 +43,6 @@ function distanciaKm(lat1, lon1, lat2, lon2) {
   return 6371 * 2 * Math.asin(Math.min(1, Math.sqrt(
     Math.sin(a / 2) ** 2 + Math.cos(r1) * Math.cos(r2) * Math.sin(b / 2) ** 2,
   )));
-}
-
-function crearConsultaOSM(zona) {
-  const lat = Number(zona.latitud);
-  const lon = Number(zona.longitud);
-  const radio = Number(zona.radioKm) || 10;
-  const dLat = radio / 111.2;
-  const dLon = radio / (111.2 * Math.max(0.2, Math.cos(lat * Math.PI / 180)));
-  const bbox = [lat - dLat, lon - dLon, lat + dLat, lon + dLon]
-    .map((n) => n.toFixed(5)).join(',');
-  return `[out:json][timeout:18];(
-    nwr["leisure"~"^(pitch|sports_centre|stadium|track|fitness_station)$"]["name"](${bbox});
-    nwr["leisure"="park"]["name"](${bbox});
-  );out center 800;`;
 }
 
 // Selección inicial de espacios REALES de Santiago, con identificadores y
@@ -101,29 +82,43 @@ const ETIQUETAS_DEPORTE = {
   skateboard: 'Skate', skating: 'Patinaje', cycling: 'Ciclismo',
   baseball: 'Béisbol', table_tennis: 'Tenis de mesa',
   multi: 'Multideporte', multi_sport: 'Multideporte',
-  fitness: 'Entrenamiento', gymnastics: 'Gimnasia',
+  fitness: 'Entrenamiento', gymnastics: 'Gimnasia', padel: 'Pádel', paddle_tennis: 'Pádel', golf: 'Golf', boxing: 'Boxeo', martial_arts: 'Artes marciales',
 };
 
 function deportesDesdeEtiquetas(tags) {
   const lista = String(tags.sport || '').split(/[;,]/).map((s) => s.trim().toLowerCase()).filter(Boolean);
   const traducidos = [...new Set(lista.map((s) => ETIQUETAS_DEPORTE[s] || s.replace(/_/g, ' ')))];
   if (traducidos.length) return traducidos;
-  if (tags.leisure === 'park') return ['Running', 'Caminata'];
+  const cats = Array.isArray(tags.geo_categories) ? tags.geo_categories : [];
+  const nombre = String(tags.name || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+  const inferred = [];
+  for (const [key, label] of Object.entries(ETIQUETAS_DEPORTE)) {
+    if (cats.some(c => c.split('.').includes(key))) inferred.push(label);
+  }
+  const patterns = [[/\b(futbol|football|soccer)\b/, 'Fútbol'], [/\b(padel)\b/, 'Pádel'], [/\b(tenis|tennis)\b/, 'Tenis'], [/\b(basquetbol|basquet|basketball)\b/, 'Básquetbol'], [/\b(piscina|natacion)\b/, 'Natación'], [/\b(gimnasio|gym|fitness)\b/, 'Entrenamiento'], [/\b(atletismo)\b/, 'Atletismo']];
+  for (const [pattern, label] of patterns) if (pattern.test(nombre)) inferred.push(label);
+  if (inferred.length) return [...new Set(inferred)];
+  if (tags.leisure === 'swimming_pool') return ['Natación'];
+  if (['fitness_centre','gym'].includes(tags.leisure)) return ['Entrenamiento'];
+  if (tags.leisure === 'park' && !tags.geo_sport) return /\bplaza\b/.test(nombre) ? ['Recreación'] : ['Running', 'Caminata'];
   if (tags.leisure === 'track') return ['Atletismo'];
   if (tags.leisure === 'fitness_station') return ['Entrenamiento'];
-  return ['Multideporte'];
+  if (tags.leisure === 'skateboard') return ['Skate'];
+  if (tags.leisure === 'golf_course') return ['Golf'];
+  if (/\b(multicancha|polideportivo)\b/.test(nombre)) return ['Multideporte'];
+  return ['Deporte sin especificar'];
 }
 
 function transformarLugar(elemento) {
   const tags = elemento.tags || {};
   const latitud = Number(elemento.lat ?? elemento.center?.lat);
   const longitud = Number(elemento.lon ?? elemento.center?.lon);
-  if (!tags.name || !Number.isFinite(latitud) || !Number.isFinite(longitud)) return null;
+  if (!Number.isFinite(latitud) || !Number.isFinite(longitud)) return null;
   const direccion = [tags['addr:street'], tags['addr:housenumber']].filter(Boolean).join(' ');
   return {
     id: `${elemento.type}/${elemento.id}`,
     osm_id: `${elemento.type}/${elemento.id}`,
-    nombre: tags.name,
+    nombre: tags.name || tags["name:es"] || `${({pitch: "Cancha", sports_centre: "Centro deportivo", stadium: "Estadio", track: "Pista", fitness_station: "Zona de ejercicio", fitness_centre: "Gimnasio", swimming_pool: "Piscina", ice_rink: "Pista de hielo", sports_hall: "Polideportivo", golf_course: "Campo de golf"})[tags.leisure] || "Espacio deportivo"} · ${deportesDesdeEtiquetas(tags).join(" / ")} (sin nombre)`,
     direccion: direccion || tags['addr:full'] || tags['addr:city'] || 'Dirección no informada',
     latitud, longitud,
     disciplinas: deportesDesdeEtiquetas(tags),
@@ -146,45 +141,12 @@ function transformarGuardado(lugar) {
   };
 }
 
-function leerCache(zona) {
-  try {
-    const clave = `athletix_match_osm_${zona.latitud.toFixed(3)}_${zona.longitud.toFixed(3)}_${zona.radioKm}`;
-    const cache = JSON.parse(window.sessionStorage.getItem(clave) || 'null');
-    if (cache && Date.now() - cache.fecha < CACHE_MS && Array.isArray(cache.lugares)) {
-      return cache.lugares;
-    }
-  } catch (_) { /* El almacenamiento local es opcional. */ }
-  return null;
-}
-
-async function consultarLugaresOSM(zona, forzarActualizacion = false) {
-  const cache = forzarActualizacion ? null : leerCache(zona);
-  if (cache) return cache;
-  const consulta = crearConsultaOSM(zona);
-  let ultimoError;
-  for (const servidor of OVERPASS_SERVERS) {
-    const controlador = new AbortController();
-    const timeout = setTimeout(() => controlador.abort(), 21000);
-    try {
-      const respuesta = await fetch(`${servidor}?data=${encodeURIComponent(consulta)}`, {
-        signal: controlador.signal,
-        headers: { Accept: 'application/json' },
-      });
-      if (!respuesta.ok) throw new Error(`Servicio de lugares: ${respuesta.status}`);
-      const json = await respuesta.json();
-      if (!Array.isArray(json.elements)) throw new Error('Respuesta cartográfica inválida');
-      const lugares = json.elements.map(transformarLugar).filter(Boolean);
-      const clave = `athletix_match_osm_${zona.latitud.toFixed(3)}_${zona.longitud.toFixed(3)}_${zona.radioKm}`;
-      try { window.sessionStorage.setItem(clave, JSON.stringify({ fecha: Date.now(), lugares })); }
-      catch (_) { /* La caché es opcional. */ }
-      return lugares;
-    } catch (error) {
-      ultimoError = error;
-    } finally {
-      clearTimeout(timeout);
-    }
-  }
-  throw ultimoError || new Error('No se pudieron cargar lugares');
+async function consultarLugaresOSM(zona) {
+  const { data, error } = await supabase.functions.invoke('match-recintos', {
+    body: { latitud: zona.latitud, longitud: zona.longitud, radioKm: zona.radioKm, limites: zona.limites || null },
+  });
+  if (error || !Array.isArray(data?.elements)) throw new Error(error?.message || 'Servicio de recintos no disponible');
+  return data.elements.map(transformarLugar).filter(Boolean);
 }
 
 function Icono({ tipo, size = 19 }) {
@@ -201,6 +163,29 @@ function Icono({ tipo, size = 19 }) {
   return <svg width={size} height={size} viewBox="0 0 24 24" fill="none"
     stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"
     aria-hidden="true">{caminos[tipo] || caminos.mapa}</svg>;
+}
+
+function MarcadoresAgrupados({ lugares, seleccionado, elegir }) {
+  const mapa = useMap();
+  const [revision, setRevision] = useState(0);
+  useMapEvents({ zoomend: () => setRevision(v => v + 1), moveend: () => setRevision(v => v + 1) });
+  const grupos = useMemo(() => {
+    const celdas = new Map();
+    lugares.forEach(l => {
+      const punto = mapa.project([Number(l.latitud), Number(l.longitud)], mapa.getZoom());
+      const clave = seleccionado?.id === l.id ? `seleccion-${l.id}` : `${Math.floor(punto.x / 52)}:${Math.floor(punto.y / 52)}`;
+      if (!celdas.has(clave)) celdas.set(clave, []);
+      celdas.get(clave).push(l);
+    });
+    return [...celdas.entries()];
+  }, [lugares, mapa, revision, seleccionado?.id]);
+  return grupos.map(([clave, lista]) => {
+    const l = lista[0];
+    if (lista.length === 1) return <Marker key={clave} icon={iconoMarcador} position={[Number(l.latitud), Number(l.longitud)]} eventHandlers={{click: () => elegir(l.id)}}><Popup><strong>{l.nombre}</strong><div>{l.direccion}</div></Popup></Marker>;
+    const centro = [lista.reduce((n, x) => n + Number(x.latitud), 0) / lista.length, lista.reduce((n, x) => n + Number(x.longitud), 0) / lista.length];
+    const icono = divIcon({className:'match-cluster-wrapper', html:`<span class="match-cluster">${lista.length}</span>`, iconSize:[38,38], iconAnchor:[19,19]});
+    return <Marker key={clave} position={centro} icon={icono} eventHandlers={{click: () => mapa.setView(centro, Math.min(19, mapa.getZoom() + 2))}}><Popup><div className="match-cluster-list">{lista.map(x => <button key={x.id} type="button" onClick={() => elegir(x.id)}>{x.nombre}</button>)}</div></Popup></Marker>;
+  });
 }
 
 function CentrarMapa({ lugar, zona }) {
@@ -236,7 +221,14 @@ function mensajeError(error) {
 }
 
 export default function AthletixMatch({ perfil, partidoDestacadoId = null }) {
+  const [mostrarFiltros, setMostrarFiltros] = useState(false);
+  const [limiteLista, setLimiteLista] = useState(LIMIT_MOSTRAR);
   const [pestana, setPestana] = useState('mapa');
+  const [filtroPartido, setFiltroPartido] = useState('');
+  const [soloCupos, setSoloCupos] = useState(false);
+  const [todasZonas, setTodasZonas] = useState(false);
+  const [edicionPartido, setEdicionPartido] = useState(null);
+  const [errorEdicion, setErrorEdicion] = useState('');
   useEffect(() => { if (partidoDestacadoId != null) setPestana('partidos'); }, [partidoDestacadoId]);
   const [zona, setZona] = useState(ZONA_INICIAL);
   const [ciudadElegida, setCiudadElegida] = useState('santiago');
@@ -256,6 +248,7 @@ export default function AthletixMatch({ perfil, partidoDestacadoId = null }) {
   const [cancelacionPendiente, setCancelacionPendiente] = useState(null);
   const [recargaMapa, setRecargaMapa] = useState(0);
   const [busqueda, setBusqueda] = useState('');
+  const [incluirRecreativos, setIncluirRecreativos] = useState(false);
   const [deporteFiltro, setDeporteFiltro] = useState('Todos');
   const [lugarId, setLugarId] = useState(null);
   const [detalleTab, setDetalleTab] = useState('informacion');
@@ -286,15 +279,15 @@ export default function AthletixMatch({ perfil, partidoDestacadoId = null }) {
   useEffect(() => { cargarPartidos(); }, [cargarPartidos]);
   useEffect(() => {
     // Santiago tiene ubicaciones iniciales. Otras zonas se consultan al elegirlas.
-    if (zona.id === 'santiago' && recargaMapa === 0) return undefined;
+    // El catálogo inicial permanece visible mientras se consulta OSM.
     let activo = true;
     setCargandoMapa(true);
     setErrorMapa('');
-    consultarLugaresOSM(zona, recargaMapa > 0).then((lugares) => {
+    consultarLugaresOSM(zona).then((lugares) => {
       if (activo) setLugaresOSM(lugares);
     }).catch((error) => {
       console.error('No se pudieron consultar lugares deportivos:', error);
-      if (activo) setErrorMapa('No pudimos cargar más lugares en esta zona. Intenta actualizar o busca otra ciudad.');
+      if (activo) setErrorMapa('No pudimos actualizar los recintos deportivos. Intenta nuevamente en unos minutos.');
     }).finally(() => { if (activo) setCargandoMapa(false); });
     return () => { activo = false; };
   }, [zona, recargaMapa]);
@@ -344,8 +337,9 @@ export default function AthletixMatch({ perfil, partidoDestacadoId = null }) {
         nombre: nombre,
         latitud: Number(resultado.lat),
         longitud: Number(resultado.lon),
-        radioKm: 10,
-        zoom: 12,
+        radioKm: 5,
+        limites: Array.isArray(resultado.boundingbox) && resultado.boundingbox.length === 4 && resultado.boundingbox.every(v => Number.isFinite(Number(v))) ? [0,2,1,3].map(i => Number(resultado.boundingbox[i])) : null,
+        zoom: 13,
       });
     } catch (error) {
       console.error('Error al buscar ciudad:', error);
@@ -357,8 +351,8 @@ export default function AthletixMatch({ perfil, partidoDestacadoId = null }) {
 
   const lugares = useMemo(() => {
     const dentroDeZona = (l) => Number.isFinite(Number(l.latitud)) && Number.isFinite(Number(l.longitud)) &&
-      distanciaKm(Number(l.latitud), Number(l.longitud), zona.latitud, zona.longitud) <= zona.radioKm * 1.55;
-    const iniciales = zona.id === 'santiago' ? LUGARES_VERIFICADOS : [];
+      (zona.limites ? Number(l.latitud) >= zona.limites[0] && Number(l.latitud) <= zona.limites[2] && Number(l.longitud) >= zona.limites[1] && Number(l.longitud) <= zona.limites[3] : distanciaKm(Number(l.latitud), Number(l.longitud), zona.latitud, zona.longitud) <= zona.radioKm);
+    const iniciales = zona.id === 'santiago' && !lugaresOSM.length ? LUGARES_VERIFICADOS.filter(dentroDeZona) : [];
     const mapa = new Map(iniciales.map((l) => [l.id, l]));
     lugaresGuardados.filter(dentroDeZona).forEach((l) => {
       const anterior = mapa.get(l.id);
@@ -373,22 +367,26 @@ export default function AthletixMatch({ perfil, partidoDestacadoId = null }) {
       });
     });
     return [...mapa.values()].sort((a, b) =>
-      distanciaKm(a.latitud, a.longitud, zona.latitud, zona.longitud) -
+      Number(a.tipo === 'park') - Number(b.tipo === 'park') || Number(/sin nombre/i.test(a.nombre)) - Number(/sin nombre/i.test(b.nombre)) || distanciaKm(a.latitud, a.longitud, zona.latitud, zona.longitud) -
       distanciaKm(b.latitud, b.longitud, zona.latitud, zona.longitud));
   }, [lugaresGuardados, lugaresOSM, zona]);
 
+  const esRecreativo = (l) => (l.disciplinas || []).length > 0 && l.disciplinas.every(d => ['Running','Caminata','Recreación'].includes(d)) && l.tipo !== 'track';
   const disciplinas = useMemo(() => {
-    const conjunto = new Set();
-    lugares.forEach((l) => (l.disciplinas || []).forEach((d) => conjunto.add(d)));
+    const conjunto = new Set(Object.values(ETIQUETAS_DEPORTE).filter(d => incluirRecreativos || d !== 'Running'));
+    conjunto.add('Deporte sin especificar');
+    if (incluirRecreativos) ['Running','Caminata','Recreación'].forEach(d=>conjunto.add(d));
+    lugares.filter(l => incluirRecreativos || !esRecreativo(l)).forEach((l) => (l.disciplinas || []).forEach((d) => conjunto.add(d)));
     return ['Todos', ...[...conjunto].sort((a, b) => a.localeCompare(b, 'es'))];
-  }, [lugares]);
+  }, [lugares, incluirRecreativos]);
 
   const lugaresFiltrados = useMemo(() => lugares.filter((l) => {
-    return normalizar(`${l.nombre} ${l.direccion}`).includes(normalizar(busqueda)) &&
+    return (incluirRecreativos || !esRecreativo(l)) && normalizar(`${l.nombre} ${l.direccion}`).includes(normalizar(busqueda)) &&
       (deporteFiltro === 'Todos' || (l.disciplinas || []).includes(deporteFiltro));
-  }), [lugares, busqueda, deporteFiltro]);
+  }), [lugares, busqueda, deporteFiltro, incluirRecreativos]);
 
-  const visibles = lugaresFiltrados.slice(0, LIMIT_MOSTRAR);
+  useEffect(() => setLimiteLista(LIMIT_MOSTRAR), [busqueda, deporteFiltro, zona.id, incluirRecreativos]);
+  const visibles = lugaresFiltrados.slice(0, limiteLista);
   const seleccionado = lugaresFiltrados.find((l) => l.id === lugarId) || null;
   // id_db conserva la clave numérica original para relacionar partidos con lugares.
   const partidosDelLugar = partidos.filter((p) => {
@@ -397,7 +395,13 @@ export default function AthletixMatch({ perfil, partidoDestacadoId = null }) {
     return guardado?.id === seleccionado.id;
   });
 
-  const partidosDisponibles = partidos.filter((p) => new Date(p.fecha_hora).getTime() > Date.now() && lugaresGuardados.some((l) => l.id_db === p.lugar_id && distanciaKm(Number(l.latitud), Number(l.longitud), zona.latitud, zona.longitud) <= zona.radioKm * 1.55));
+  const partidosZona = partidos.filter((p) => new Date(p.fecha_hora).getTime() > Date.now() && lugaresGuardados.some((l) => l.id_db === p.lugar_id && distanciaKm(Number(l.latitud), Number(l.longitud), zona.latitud, zona.longitud) <= zona.radioKm * 1.55));
+  const partidosDisponibles = (todasZonas ? partidos.filter(p => new Date(p.fecha_hora).getTime() > Date.now()) : partidosZona).filter(p => {
+    const lugar = lugaresGuardados.find(l => l.id_db === p.lugar_id);
+    return normalizar(`${p.deporte} ${lugar?.nombre || ''} ${lugar?.direccion || ''}`).includes(normalizar(filtroPartido)) &&
+      (!soloCupos || Number(p.jugadores_actuales) < Number(p.capacidad_maxima));
+  });
+  const historial = partidos.filter(p => (p.organizador_id === perfil.id || inscripciones.includes(p.id)) && new Date(p.fecha_hora).getTime() <= Date.now()).reverse();
   const misOrganizados = partidos.filter((p) => p.organizador_id === perfil.id && new Date(p.fecha_hora).getTime() > Date.now());
   const misInscritos = partidos.filter((p) => p.organizador_id !== perfil.id && inscripciones.includes(p.id) && new Date(p.fecha_hora).getTime() > Date.now());
 
@@ -695,6 +699,28 @@ export default function AthletixMatch({ perfil, partidoDestacadoId = null }) {
     await cargarPartidos();
   };
 
+  const abrirEdicion = (p) => {
+    const fecha = new Date(p.fecha_hora);
+    const local = new Date(fecha.getTime() - fecha.getTimezoneOffset() * 60000).toISOString().slice(0,16);
+    setErrorEdicion('');
+    setEdicionPartido({ id: p.id, fecha: local, capacidad: p.capacidad_maxima, ocupados: p.jugadores_actuales });
+  };
+  const guardarEncuentro = async (e) => {
+    e.preventDefault();
+    if (guardando || !edicionPartido) return;
+    const fecha = new Date(edicionPartido.fecha);
+    const capacidad = Number(edicionPartido.capacidad);
+    if (!Number.isFinite(fecha.getTime()) || fecha.getTime() <= Date.now() || !Number.isInteger(capacidad) || capacidad < Math.max(2, Number(edicionPartido.ocupados)) || capacidad > 30) {
+      setErrorEdicion('Revisa la fecha y los cupos: no puedes dejar fuera a participantes inscritos.'); return;
+    }
+    setGuardando(true);
+    try {
+      const { error } = await supabase.rpc('ath_match_editar_encuentro', { p_partido_id: edicionPartido.id, p_fecha_hora: fecha.toISOString(), p_capacidad: capacidad });
+      if (error) { setErrorEdicion(mensajeError(error)); return; }
+      setEdicionPartido(null); setAviso('Encuentro actualizado.'); await cargarPartidos();
+    } catch (error) { setErrorEdicion(mensajeError(error)); }
+    finally { setGuardando(false); }
+  };
   const renderEventos = (lista, mostrarLugar = false) => {
     if (cargandoPartidos) return <div className="match-empty"><strong>Cargando encuentros...</strong></div>;
     if (!partidosHabilitados) return <p className="match-error" role="alert">No se pudieron cargar los encuentros. Revisa la conexión y vuelve a actualizar.</p>;
@@ -702,16 +728,18 @@ export default function AthletixMatch({ perfil, partidoDestacadoId = null }) {
     return <div className="match-events">{lista.map((p) => {
               const inscrito = inscripciones.includes(p.id);
               const propio = p.organizador_id === perfil.id;
+              const finalizado = new Date(p.fecha_hora).getTime() <= Date.now();
               const puedeCancelar = propio || esAdministradorMuro;
               const ocupados = Number(p.jugadores_actuales) || 0;
               const capacidad = Number(p.capacidad_maxima) || 0;
               return <article className={`match-event ${String(p.id) === String(partidoDestacadoId) ? 'match-event-destacado' : ''}`} key={p.id}>
-                <div className="match-event-main"><div className="match-event-title"><strong>{p.deporte}</strong><span className="match-event-status">{propio ? 'Organizas' : inscrito ? 'Inscrito' : ocupados >= capacidad ? 'Completo' : 'Disponible'}</span></div>{mostrarLugar && <span><Icono tipo="ubicacion" size={15}/>{lugaresGuardados.find((l) => l.id_db === p.lugar_id)?.nombre || "Recinto deportivo"}</span>}
+                <div className="match-event-main"><div className="match-event-title"><strong>{p.deporte}</strong><span className="match-event-status">{finalizado ? 'Finalizado' : propio ? 'Organizas' : inscrito ? 'Inscrito' : ocupados >= capacidad ? 'Completo' : 'Disponible'}</span></div>{mostrarLugar && <span><Icono tipo="ubicacion" size={15}/>{lugaresGuardados.find((l) => l.id_db === p.lugar_id)?.nombre || "Recinto deportivo"}</span>}
                   <span><Icono tipo="calendario" size={15}/>{formatearFecha(p.fecha_hora)}</span>
                   <span><Icono tipo="personas" size={15}/>{ocupados}/{capacidad} participantes · {Math.max(0, capacidad - ocupados)} cupos disponibles</span>
                 </div>
                 <div className="match-event-actions">
-                  {puedeCancelar ? (
+                  {!finalizado && propio && <button type="button" className="match-btn match-btn-secondary" disabled={guardando} onClick={() => abrirEdicion(p)}>Editar</button>}
+                  {finalizado ? null : puedeCancelar ? (
                     <button type="button" className="match-btn match-btn-secondary" disabled={guardando}
                       onClick={() => setCancelacionPendiente(p.id)}>{propio ? 'Cancelar mi encuentro' : 'Retirar encuentro'}</button>
                   ) : (
@@ -741,56 +769,25 @@ export default function AthletixMatch({ perfil, partidoDestacadoId = null }) {
         <button type="button" className={pestana === 'comunidad' ? 'is-active' : ''} aria-current={pestana === 'comunidad' ? 'page' : undefined} onClick={() => setPestana('comunidad')}>Comunidad</button>
       </nav>
       {pestana === 'mapa' && <div className="match-map-content">
-      <div className="match-location-panel">
-        <div className="match-location-intro"><strong>¿Dónde quieres jugar?</strong>
-          <span>Elige una ciudad o busca una comuna de Chile.</span></div>
-        <div className="match-location-controls">
-          <label className="match-location-city"><span>Ciudad</span>
-            <select value={ciudadElegida} onChange={seleccionarCiudad} aria-label="Elegir ciudad">
-              <option value="">Otra ciudad o comuna</option>
-              {CIUDADES.map((c) => <option key={c.id} value={c.id}>{c.nombre}</option>)}
-            </select>
-          </label>
-          <form className="match-location-search" onSubmit={buscarOtraCiudad}>
-            <label htmlFor="match-otra-ciudad">¿No está en la lista?</label>
-            <div><input id="match-otra-ciudad" value={ciudadLibre} onChange={(e) => setCiudadLibre(e.target.value)}
-              placeholder="Escribe tu ciudad o comuna" />
-              <button type="submit" className="match-btn match-btn-primary" disabled={buscandoCiudadPublicacion}>
-                {buscandoCiudadPublicacion ? 'Buscando...' : 'Buscar'}
-              </button>
-            </div>
-          </form>
+      <div className="match-location-panel match-compact-search">
+        <form className="match-location-search" onSubmit={buscarOtraCiudad}>
+          <label htmlFor="match-otra-ciudad">Ciudad o comuna</label>
+          <div><input id="match-otra-ciudad" value={ciudadLibre} onChange={e => setCiudadLibre(e.target.value)} placeholder={zona.nombre} />
+          <button type="submit" className="match-btn match-btn-primary" disabled={buscandoCiudad}>{buscandoCiudad ? 'Buscando…' : 'Buscar'}</button></div>
+        </form>
+        <div className="match-compact-actions">
+          <button type="button" className="match-btn match-btn-secondary" aria-expanded={mostrarFiltros} onClick={() => setMostrarFiltros(v => !v)}>{mostrarFiltros ? 'Ocultar filtros' : 'Filtrar recintos'}{deporteFiltro !== 'Todos' || busqueda ? ' •' : ''}</button>
+          <button type="button" className="match-btn match-btn-secondary" onClick={() => setRecargaMapa(v => v + 1)} disabled={cargandoMapa}><Icono tipo="recargar" size={16}/> {cargandoMapa ? 'Actualizando…' : 'Actualizar'}</button>
         </div>
+        {mostrarFiltros && <div className="match-filters">
+          <label className="match-search"><Icono tipo="buscar" size={18}/><input type="search" value={busqueda} onChange={e => setBusqueda(e.target.value)} placeholder="Nombre del recinto" aria-label="Nombre del recinto"/></label>
+          <label style={{display:"flex",alignItems:"center",gap:8,fontSize:13}}><input type="checkbox" checked={incluirRecreativos} onChange={e=>{setIncluirRecreativos(e.target.checked);setDeporteFiltro("Todos");}}/> Incluir espacios recreativos</label>
+          <label className="match-filter-select"><span>Deporte</span><select value={deporteFiltro} onChange={e => setDeporteFiltro(e.target.value)}>{disciplinas.map(d => <option key={d} value={d}>{d}</option>)}</select></label>
+        </div>}
         {errorCiudad && <p className="match-error" role="alert">{errorCiudad}</p>}
-      </div>
-
-      <div className="match-toolbar match-toolbar-clean">
-        <span className="match-source-caption">Explora lugares deportivos</span>
-        <div className="match-toolbar-actions">
-          <button type="button" className="match-btn match-btn-secondary" onClick={() => setRecargaMapa((v) => v + 1)} disabled={cargandoMapa}>
-            <Icono tipo="recargar" size={16}/> {cargandoMapa ? 'Actualizando...' : 'Actualizar'}
-          </button>
-          {partidosHabilitados && (
-            <button type="button" className="match-btn match-btn-secondary" onClick={cargarPartidos} disabled={cargandoPartidos}>
-              <Icono tipo="recargar" size={16}/> Actualizar partidos
-            </button>
-          )}
-        </div>
       </div>
       {aviso && <p className="match-feedback" role="status">{aviso}</p>}
       {errorMapa && <p className="match-error" role="alert">{errorMapa}</p>}
-
-      <div className="match-filters">
-        <label className="match-search"><Icono tipo="buscar" size={18}/>
-          <input type="search" value={busqueda} onChange={(e) => setBusqueda(e.target.value)}
-            placeholder="Buscar cancha, parque o sector" aria-label="Buscar cancha, parque o sector"/>
-        </label>
-        <label className="match-filter-select"><span>Deporte</span>
-          <select value={deporteFiltro} onChange={(e) => setDeporteFiltro(e.target.value)}>
-            {disciplinas.map((d) => <option key={d} value={d}>{d}</option>)}
-          </select>
-        </label>
-      </div>
 
       <div className="match-layout">
         <div className="match-map-panel">
@@ -801,12 +798,7 @@ export default function AthletixMatch({ perfil, partidoDestacadoId = null }) {
             <TileLayer attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" maxZoom={19}/>
             <CentrarMapa lugar={seleccionado} zona={zona}/>
-            {visibles.map((l) => (
-              <Marker key={l.id} icon={iconoMarcador} position={[Number(l.latitud), Number(l.longitud)]}
-                eventHandlers={{ click: () => setLugarId(l.id) }}>
-                <Popup><strong>{l.nombre}</strong><div>{l.direccion}</div></Popup>
-              </Marker>
-            ))}
+            <MarcadoresAgrupados lugares={lugaresFiltrados} seleccionado={seleccionado} elegir={setLugarId}/>
           </MapContainer>
         </div>
         <div className="match-side-panel">
@@ -827,8 +819,8 @@ export default function AthletixMatch({ perfil, partidoDestacadoId = null }) {
                   </span>
                 </button>
               ))}
-              {lugaresFiltrados.length > LIMIT_MOSTRAR && (
-                <p className="match-list-note">Mostrando {LIMIT_MOSTRAR} lugares. Usa la búsqueda para encontrar otros.</p>
+              {lugaresFiltrados.length > limiteLista && (
+                <button type="button" className="match-btn match-btn-secondary" onClick={() => setLimiteLista(v => v + LIMIT_MOSTRAR)}>Mostrar más recintos</button>
               )}
             </div>
           )}
@@ -972,17 +964,30 @@ export default function AthletixMatch({ perfil, partidoDestacadoId = null }) {
       </section>}
       {pestana === 'partidos' && <section className="match-tab-panel">
         <div className="match-tab-heading"><div><h3>Próximos encuentros</h3><p>Convocatorias disponibles en {zona.nombre}.</p></div><button type="button" className="match-btn match-btn-secondary" disabled={cargandoPartidos} onClick={cargarPartidos}>Actualizar</button></div>
+        <div className="match-event-filters">
+          <label>Buscar encuentro<input type="search" value={filtroPartido} onChange={e => setFiltroPartido(e.target.value)} placeholder="Deporte o recinto" /></label>
+          <label><input type="checkbox" checked={soloCupos} onChange={e => setSoloCupos(e.target.checked)} /> Solo con cupos</label>
+          <label><input type="checkbox" checked={todasZonas} onChange={e => setTodasZonas(e.target.checked)} /> Todas las ciudades</label>
+        </div>
         {partidoDestacadoId != null && partidos.some(p => String(p.id) === String(partidoDestacadoId)) && (
           <div className="match-linked-event"><strong>Partido seleccionado desde Avisos</strong>{renderEventos(partidos.filter(p => String(p.id) === String(partidoDestacadoId)), true)}</div>
         )}
         {renderEventos(partidosDisponibles.filter(p => String(p.id) !== String(partidoDestacadoId)), true)}
         <p className="match-help">¿Quieres organizar uno? Ve a Mapa, selecciona un recinto y toca «Crear convocatoria».</p>
       </section>}
+      {pestana !== 'mapa' && aviso && <p className="match-feedback" role="status">{aviso}</p>}
       {pestana === 'mis' && <section className="match-tab-panel">
         <div className="match-tab-heading"><div><h3>Mis encuentros</h3><p>Convocatorias que organizaste o a las que te inscribiste.</p></div><button type="button" className="match-btn match-btn-secondary" disabled={cargandoPartidos} onClick={cargarPartidos}>Actualizar</button></div>
         <div className="match-my-group"><h4>Organizados por mí <span>{misOrganizados.length}</span></h4>{misOrganizados.length ? renderEventos(misOrganizados, true) : <p className="match-my-empty">Todavía no organizas encuentros.</p>}</div>
         <div className="match-my-group"><h4>Mis inscripciones <span>{misInscritos.length}</span></h4>{misInscritos.length ? renderEventos(misInscritos, true) : <p className="match-my-empty">Todavía no te has inscrito en otros encuentros.</p>}</div>
+      <div className="match-my-group"><h4>Encuentros anteriores <span>{historial.length}</span></h4>{historial.length ? renderEventos(historial, true) : <p className="match-my-empty">No hay encuentros anteriores disponibles.</p>}</div>
       </section>}
+      {edicionPartido && <div className="match-modal-backdrop"><div className="match-modal" role="dialog" aria-modal="true" aria-label="Editar encuentro"><h3>Editar encuentro</h3><form className="match-form" onSubmit={guardarEncuentro}>
+        <label>Fecha y hora<input required type="datetime-local" value={edicionPartido.fecha} onChange={e => setEdicionPartido(p => ({...p, fecha:e.target.value}))}/></label>
+        <label>Cupos totales<input required type="number" min={Math.max(2,Number(edicionPartido.ocupados))} max="30" value={edicionPartido.capacidad} onChange={e => setEdicionPartido(p => ({...p, capacidad:e.target.value}))}/></label>
+        {errorEdicion && <p className="match-error" role="alert">{errorEdicion}</p>}
+        <div className="match-confirm-actions"><button type="button" className="match-btn match-btn-secondary" disabled={guardando} onClick={() => setEdicionPartido(null)}>Volver</button><button type="submit" className="match-btn match-btn-primary" disabled={guardando}>Guardar cambios</button></div>
+      </form></div></div>}
       {errorGestion && <p className="match-error" role="alert">{errorGestion}</p>}
       {accionMuro && <div className="match-modal-backdrop" role="presentation"><div className="match-modal match-confirm-modal" role="alertdialog" aria-modal="true" aria-labelledby="match-delete-content-title"><h3 id="match-delete-content-title">¿Eliminar {accionMuro.tipo === 'publicacion' ? 'publicación' : 'comentario'}?</h3><p>Esta acción no se puede deshacer.{accionMuro.tipo === 'publicacion' ? ' También se eliminarán sus comentarios.' : ' También se eliminarán sus respuestas.'}</p><div className="match-confirm-actions"><button type="button" className="match-btn match-btn-secondary" onClick={() => setAccionMuro(null)} disabled={procesandoMuro}>Volver</button><button type="button" className="match-btn match-btn-primary" onClick={confirmarEliminacionMuro} disabled={procesandoMuro}>{procesandoMuro ? 'Eliminando...' : 'Eliminar'}</button></div>{errorGestion && <p className="match-error" role="alert">{errorGestion}</p>}</div></div>}
       {cancelacionPendiente !== null && (

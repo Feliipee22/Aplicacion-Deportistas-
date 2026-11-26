@@ -1,0 +1,15 @@
+import React,{useState} from 'react';
+export default function CalculoNutricional({aplicar,ocupado}){
+ const [p,S]=useState({edad:'',peso:'',altura:'',formula:'',actividad:'1.55',objetivo:'mantener'});
+ const cambio=(k,v)=>S(x=>({...x,[k]:v}));
+ const a=Number(p.edad),w=Number(p.peso),h=Number(p.altura);
+ const valido=Number.isInteger(a)&&a>=18&&a<=100&&w>=35&&w<=250&&h>=120&&h<=230&&!!p.formula;
+ const basal=10*w+6.25*h-5*a+(p.formula==='m'?5:-161);
+ const mantenimiento=basal*Number(p.actividad);
+ const perdida=p.objetivo==='perder';
+ const energia=Math.round(mantenimiento*(p.objetivo==='ganar'?1.05:perdida ? 0.9 : 1)/50)*50;
+ const proteinas=Math.round(w*1.4),grasas=Math.round(energia*.30/9),carbohidratos=Math.round((energia-4*proteinas-9*grasas)/4);
+ const seguro=valido&&energia>=1500&&carbohidratos>=0&&(!perdida||(w/(h/100)**2>=25&&a<65));
+ const r=seguro?{calorias:energia,proteinas,grasas,carbohidratos}:null;
+ return <div className="ath-goal-calculator"><p className="ath-nut-muted">Completa tus datos para ver tus necesidades diarias. Solo para adultos sanos; no usar durante embarazo, lactancia, necesidades clínicas o antecedentes de trastornos alimentarios.</p><div className="ath-nut-goals">{[['edad','Edad (años)'],['peso','Peso (kg)'],['altura','Estatura (cm)']].map(([k,l])=><label key={k}>{l}<input type="number" min="1" step="any" value={p[k]} onChange={x=>cambio(k,x.target.value)}/></label>)}</div><label>Sexo para el cálculo<select value={p.formula} onChange={x=>cambio('formula',x.target.value)}><option value="">Seleccionar</option><option value="m">Masculino</option><option value="f">Femenino</option></select></label><label>Actividad física habitual<select value={p.actividad} onChange={x=>cambio('actividad',x.target.value)}>{[['1.2','Baja'],['1.375','Ligera'],['1.55','Moderada'],['1.725','Alta'],['1.9','Muy alta']].map(([v,l])=><option key={v} value={v}>{l}</option>)}</select></label><label>Objetivo<select value={p.objetivo} onChange={x=>cambio('objetivo',x.target.value)}><option value="mantener">Mantener peso</option><option value="perder">Perder peso</option><option value="ganar">Ganar masa muscular</option><option value="rendimiento">Mejorar rendimiento</option></select></label>{valido&&!seguro&&<p role="status">Para este perfil y objetivo se recomienda una evaluación nutricional individual. Puedes consultar las referencias de mantenimiento.</p>}{r&&<div className="ath-goal-hero" aria-live="polite"><small>ESTIMACIÓN DIARIA</small><strong>{r.calorias.toLocaleString('es-CL')} kcal</strong><div className="ath-goal-macros">{[['Proteínas',r.proteinas],['Carbohidratos',r.carbohidratos],['Grasas',r.grasas]].map(([n,v])=><div key={n}><small>{n}</small><b>{v} g</b></div>)}</div></div>}<button className="ath-goal-save" type="button" disabled={!r||ocupado} onClick={()=>aplicar(r)}>{ocupado?'Guardando…':'Guardar mis metas'}</button><p className="ath-nut-muted">Las cantidades son estimaciones según tu perfil y actividad, no límites de consumo.</p></div>;
+}

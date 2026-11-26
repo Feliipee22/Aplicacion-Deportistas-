@@ -322,3 +322,24 @@
 
 /* Respuesta sutil integrada al hilo */
 .match-comment-reply{display:inline-flex;align-items:center;gap:5px;margin-top:3px;padding:6px 9px;border:1px solid transparent;border-radius:999px;background:transparent;color:#657986;font-size:12px;font-weight:650;line-height:1.2;transition:background .15s,color .15s}.match-comment-reply:hover,.match-comment-reply:focus-visible{background:#e6edf0;color:#17384b}.match-comment-reply span{font-size:17px;line-height:1}
+
+.match-event-filters { display:flex; flex-wrap:wrap; align-items:end; gap:12px; margin:16px 0; }
+.match-event-filters label { display:flex; align-items:center; gap:8px; font-size:.9rem; }
+.match-event-filters label:first-child { flex:1 1 240px; flex-direction:column; align-items:stretch; }
+.match-event-filters input[type=search] { width:100%; padding:10px; border:1px solid #cbd5e1; border-radius:9px; font:inherit; }
+.match-event-actions { flex-wrap:wrap; gap:8px; }
+@media(max-width:600px){.match-tabs button{font-size:11px;line-height:1.25;min-height:48px}.match-map{height:360px;min-height:300px}.match-toolbar-actions{gap:6px}.match-map-heading{padding:12px;flex-wrap:wrap}}
+
+/* Recintos: búsqueda compacta y agrupación de marcadores */
+.match-compact-search .match-location-search{width:100%;min-width:0}
+.match-compact-actions{display:flex;gap:8px;flex-wrap:wrap}
+.match-compact-search .match-filters{margin:0;min-width:0}
+.match-compact-search .match-search{min-height:44px;height:auto;min-width:0}
+.match-module .match-places{display:flex;flex-direction:column;gap:0;max-height:480px;overflow:auto;align-items:stretch}
+.match-module .match-places .match-place{flex:0 0 auto;height:auto;min-height:84px;max-height:none;white-space:normal;align-items:flex-start;padding:14px 10px;border-bottom:1px solid #edf1f4;border-radius:8px}
+.match-module .match-place-text{display:flex;flex-direction:column;flex:1;min-width:0;gap:6px;overflow-wrap:anywhere;white-space:normal}
+.match-module .match-place-text strong,.match-module .match-place-text small{display:block;position:static;line-height:1.45;white-space:normal}
+.match-cluster{display:grid;place-items:center;width:38px;height:38px;border:3px solid #193344;border-radius:50%;background:#c5f277;color:#193344;font-size:13px;font-weight:800;box-shadow:0 2px 5px #0003}
+.match-cluster-list{display:grid;gap:5px;max-height:180px;overflow:auto}
+.match-cluster-list button{background:white;border:1px solid #e2e9f0;border-radius:6px;padding:6px;text-align:left;color:#193344}
+@media(max-width:640px){.match-module .match-places{max-height:360px}.match-compact-actions .match-btn{flex:1}.match-compact-search .match-filters{display:grid;grid-template-columns:1fr}}

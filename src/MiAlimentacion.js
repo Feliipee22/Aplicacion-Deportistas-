@@ -5,6 +5,7 @@ import { Capacitor } from '@capacitor/core';
 import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 import './MiAlimentacion.css';
 import AlimentacionIAPro from './AlimentacionIAPro';
+import NutricionSeguimiento from './NutricionSeguimiento';
 
 const crearId = () => `${Date.now()}-${Math.random().toString(36).slice(2)}`;
 const nuevoAlimento = () => ({ id: crearId(), nombre: '', gramos: '100', proteinas: '0', carbohidratos: '0', grasas: '0' });
@@ -63,8 +64,8 @@ const mensajeError = (error) => {
 
 export default function MiAlimentacion() {
   const [pestana, setPestana] = useState('dia');
+  const [modoRegistro, setModoRegistro] = useState('foto');
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
-  const [mostrarComidasDia, setMostrarComidasDia] = useState(true);
   const [foto, setFoto] = useState(null);
   const [fotoUrl, setFotoUrl] = useState('');
   const [alimentos, setAlimentos] = useState([nuevoAlimento()]);
@@ -323,6 +324,7 @@ export default function MiAlimentacion() {
     setFoto(null);
     setObservaciones(r.observaciones || '');
     setAviso('Editando una comida guardada. Realiza los cambios y pulsa «Actualizar comida».');
+    setModoRegistro('manual');
     abrirRegistro();
   };
 
@@ -350,15 +352,21 @@ export default function MiAlimentacion() {
         <button type="button" role="tab" aria-selected={pestana === 'dia'} className={pestana === 'dia' ? 'active' : ''} onClick={() => setPestana('dia')}>Mi día</button>
         <button type="button" role="tab" aria-selected={pestana === 'plan'} className={pestana === 'plan' ? 'active' : ''} onClick={() => setPestana('plan')}>Plan IA</button>
         <button type="button" role="tab" aria-selected={pestana === 'progreso'} className={pestana === 'progreso' ? 'active' : ''} onClick={() => setPestana('progreso')}>Mi progreso</button>
+        <button type="button" role="tab" aria-selected={pestana === 'objetivos'} className={pestana === 'objetivos' ? 'active' : ''} onClick={() => setPestana('objetivos')}>Mis metas</button>
       </div>
-      {pestana === 'plan' && <AlimentacionIAPro />}
+      {pestana === 'objetivos' && <NutricionSeguimiento key="metas" registros={registros} perfil />}
+      {pestana === 'plan'  && <AlimentacionIAPro />}
       {pestana === 'dia' && <>
       <div className="ath-food-daily-top">
-        <div className="ath-food-daily-heading"><div><span className="ath-food-daily-eyebrow">SEGUIMIENTO PERSONAL</span><h2>Mi alimentación de hoy</h2><p>Registra lo que comes y consulta tus estimaciones diarias.</p></div><button type="button" className="ath-food-refresh" onClick={cargarHistorial} disabled={cargando}>Actualizar</button></div>
-        <div className="ath-food-daily-metrics"><div><span>Calorías registradas</span><strong>{mostrar(registros.filter(r => r.fecha === fechaLocal()).reduce((a,r) => a + numero(r.calorias), 0))} <small>kcal</small></strong></div><div><span>Comidas de hoy</span><strong>{registros.filter(r => r.fecha === fechaLocal()).length}</strong></div></div>
-        <button type="button" className="ath-food-primary-action" ref={botonRegistroRef} onClick={() => { nuevoRegistro(); abrirRegistro(); }}>+ Registrar comida</button>
-        <button type="button" className="ath-food-secondary-action" onClick={() => setMostrarComidasDia(v => !v)} aria-expanded={mostrarComidasDia}>{mostrarComidasDia ? 'Ocultar comidas de hoy' : 'Ver comidas de hoy'}</button>
-        {mostrarComidasDia && <div className="ath-food-today-list">{registros.filter(r => r.fecha === fechaLocal()).length === 0 ? <p>Aún no registras comidas hoy.</p> : registros.filter(r => r.fecha === fechaLocal()).map(r => <div key={r.id} className="ath-food-today-item"><div><strong>{r.tipo_comida}</strong><span>{mostrar(r.calorias)} kcal</span></div><button type="button" onClick={() => { editar(r); }}>Editar</button></div>)}</div>}
+        <div className="ath-food-daily-heading"><h2>Hoy</h2>{cargando && <small role="status">Cargando…</small>}</div>
+        {mensajeHistorial && <div role="alert" className="ath-food-notice">{mensajeHistorial} <button type="button" className="ath-food-link" onClick={cargarHistorial} disabled={cargando}>Reintentar</button></div>}
+        <div className="ath-food-quick">
+          <button type="button" ref={botonRegistroRef} className="ath-food-scan" onClick={() => { nuevoRegistro(); setFecha(fechaLocal()); setModoRegistro('foto'); abrirRegistro(); }}><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><path d="M3 7h4l2-3h6l2 3h4v14H3z"/><circle cx="12" cy="13" r="4"/></svg><span><strong>Escanear comida con IA</strong><small>Toma una foto o sube una imagen</small></span></button>
+          <button type="button" className="ath-food-manual" onClick={() => { nuevoRegistro(); setFecha(fechaLocal()); setModoRegistro('manual'); abrirRegistro(); }}>+ Registrar manualmente</button>
+        </div>
+        <NutricionSeguimiento key="dia" registros={registros} cargando={cargando} abrirMetas={()=>setPestana('objetivos')} />
+        <h3 className="ath-food-meals-heading">Comidas de hoy</h3>
+        <div className="ath-food-today-list">{registros.filter(r => r.fecha === fechaLocal()).length === 0 ? <p>Aún no registras comidas hoy.</p> : registros.filter(r => r.fecha === fechaLocal()).map(r => <div key={r.id} className="ath-food-today-item"><div><strong>{r.tipo_comida}</strong><span>{mostrar(r.calorias)} kcal</span></div><button type="button" onClick={() => { editar(r); }}>Editar</button></div>)}</div>
       </div>
       {mostrarFormulario && createPortal(<div className="ath-food ath-food-sheet-root">
         <div className="ath-food-sheet-backdrop" onMouseDown={e => { if (e.target === e.currentTarget) cerrarRegistro(); }} aria-hidden="true" />
@@ -374,10 +382,12 @@ export default function MiAlimentacion() {
         
         <p>Fotografía tu comida, estima sus nutrientes con IA y lleva un historial privado.</p>
       </header>
-      <div className="ath-food-info"><strong>Estimaciones orientativas.</strong> La IA no puede medir exactamente las porciones ni los ingredientes ocultos. Corrige los valores antes de guardarlos. Las fotografías no se almacenan en el historial.</div>
+      {modoRegistro === 'foto' && <div className="ath-food-info"><strong>Estimaciones orientativas.</strong> La IA no puede medir exactamente las porciones ni los ingredientes ocultos. Corrige los valores antes de guardarlos. Las fotografías no se almacenan en el historial.</div>}
       <div className="ath-food-grid">
+        {modoRegistro === 'manual' && <button type="button" className="ath-food-manual" onClick={() => setModoRegistro('foto')}>Usar cámara o foto con IA</button>}
+        {modoRegistro === 'foto' &&
         <div className="ath-food-panel">
-          <h3>1. Fotografía de tu comida</h3>
+          <h3>Fotografía de tu comida</h3>
           <p>Toma una foto con tu móvil o selecciona una imagen JPG, PNG o WebP (máximo 8 MB).</p>
           <div className="ath-food-actions">
             <button type="button" className="ath-food-upload" onClick={tomarFotografia}>Tomar fotografía</button>
@@ -392,9 +402,9 @@ export default function MiAlimentacion() {
           </div>}
           {aviso && <p className="ath-food-notice" role="status">{aviso}</p>}
           {observaciones && <p className="ath-food-footnote"><strong>Observaciones de la IA:</strong> {observaciones}</p>}
-        </div>
+        </div>}
         <div className="ath-food-panel">
-          <h3>2. Estimación nutricional</h3>
+          <h3> Estimación nutricional</h3>
           <p>Se actualiza al corregir las porciones y los valores por 100 g.</p>
           <div className="ath-food-metrics">
             <div><span>Calorías</span><strong>{mostrar(totales.calorias)} <small>kcal</small></strong></div>
@@ -406,7 +416,7 @@ export default function MiAlimentacion() {
         </div>
       </div>
       <div ref={editorRef} className="ath-food-panel ath-food-editor">
-        <div className="ath-food-editor-heading"><div><h3>3. Alimentos y porciones</h3><p>Revisa los alimentos detectados o ingrésalos manualmente.</p></div></div>
+        <div className="ath-food-editor-heading"><div><h3>Alimentos y porciones</h3><p>Revisa los alimentos detectados o ingrésalos manualmente.</p></div></div>
         {alimentos.map((a, i) => <div className="ath-food-item" key={a.id}>
           <div className="ath-food-item-title"><strong>Alimento {i + 1}</strong>{alimentos.length > 1 && <button type="button" className="ath-food-link" onClick={() => setAlimentos(lista => lista.filter(x => x.id !== a.id))}>Quitar</button>}</div>
           <div className="ath-food-fields">
@@ -434,6 +444,7 @@ export default function MiAlimentacion() {
       </>}
       {pestana === 'progreso'  && <>
       <div className="ath-food-progress-intro"><span className="ath-food-daily-eyebrow">HISTORIAL PERSONAL</span><h2>Mi progreso alimentario</h2><p>Consulta tus registros por fecha. Los valores son estimaciones, no mediciones clínicas.</p></div>
+      <NutricionSeguimiento registros={registros} semanal cargando={cargando} />
       <div className="ath-food-panel ath-food-history">
         <div className="ath-food-history-heading"><div><h3>Historial de comidas</h3><p>Solo tú puedes consultar tus comidas guardadas.</p></div><button type="button" className="ath-food-link" onClick={cargarHistorial} disabled={cargando}>Actualizar</button></div>
         <div className="ath-food-history-filter"><label>Consultar fecha<input type="date" value={fecha} onChange={e => setFecha(e.target.value)} /></label><span>{registrosFecha.length} comida(s) guardada(s)</span></div>

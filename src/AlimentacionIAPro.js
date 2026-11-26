@@ -1,3 +1,4 @@
+import ConsultaAthletixIA from './ConsultaAthletixIA';
 import React, { useEffect, useRef, useState } from 'react';
 import { supabase } from './supabase';
 import './AlimentacionIAPro.css';
@@ -78,6 +79,7 @@ export default function AlimentacionIAPro() {
   const opciones = (etiqueta,key,lista) => <label className="nut-field"><span>{etiqueta}</span><select value={perfil[key]} onChange={e=>cambiar(key,e.target.value)}>{lista.map(x=><option key={x} value={x}>{x}</option>)}</select></label>;
   return <section className="nut-pro" ref={arriba} aria-label="Planificador de alimentación Athletix">
     <div className="nut-hero"><span className="nut-icon">✦</span><div><span className="nut-kicker">ATHLETIX · NUTRICIÓN DEPORTIVA</span><h2>Alimentación inteligente</h2><p>Menús personalizados según tu objetivo, deporte, horarios y preferencias.</p></div></div>
+  <ConsultaAthletixIA tipo="alimentacion" perfil={perfil} />
     <div className="nut-tabs"><button className={vista==='crear'?'active':''} onClick={()=>{setVista('crear');subir();}}>Crear menú</button><button className={vista==='guardados'?'active':''} onClick={()=>{setVista('guardados');cargar();subir();}}>Mis menús ({guardados.length})</button>{plan&&<button className={vista==='plan'?'active':''} onClick={()=>{setVista('plan');subir();}}>Menú generado</button>}</div>
     {error&&<p className="nut-error" role="alert">{error}</p>}{mensaje&&<p className="nut-ok" role="status">{mensaje}</p>}
     {vista==='crear'&&<div className="nut-panel"><div className="nut-step">EVALUACIÓN NUTRICIONAL · PASO {paso+1} DE 3 <div className="nut-progress"><i style={{width:`${(paso+1)/3*100}%`}}/></div></div>

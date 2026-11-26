@@ -1,3 +1,4 @@
+import ConsultaAthletixIA from './ConsultaAthletixIA';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { supabase } from './supabase';
 import './EntrenadorIAPro.css';
@@ -93,6 +94,7 @@ export default function EntrenadorIAPro({ programacionInicial = null }) {
  if (vista === 'guiado' && plan && planGuardadoId !== null && plan.sesiones[seleccion]) return <EntrenamientoGuiado key={`${planGuardadoId}-${seleccion}-${programacionActiva || "libre"}`} planId={planGuardadoId} programacionId={programacionActiva} sesionIndex={seleccion} sesion={plan.sesiones[seleccion]} onBack={() => {setProgramacionActiva(null);setVista('resultado');}} onRegister={(segundos) => {setUltimoRegistro(null);setSegundosGuiados(segundos);setSesionCrono(seleccion);setVista('progreso');}}/>;
  return <section className="aip">
   <header className="aip-head"><div className="aip-symbol">✦</div><div><h2>Mis planes de entrenamiento</h2><p>Elige un plan o crea uno nuevo.</p></div></header>
+  <ConsultaAthletixIA tipo="entrenamiento" perfil={perfil} />
   <nav className="aip-tabs" style={{display:'flex',overflowX:'auto',gap:8,scrollbarWidth:'thin',paddingBottom:5}} aria-label="Secciones del entrenador IA"><button style={{flexShrink:0}} className={vista==='guardados'?'active':''} onClick={()=>{setVista('guardados');cargar();}}>Mis planes ({guardados.length})</button><button style={{flexShrink:0}} className={vista==='crear'?'active':''} onClick={()=>{setVista('crear');setError('');}}>+ Crear plan</button>{plan&&planGuardadoId===null&&<button style={{flexShrink:0}} className={vista==='resultado'?'active':''} onClick={()=>setVista('resultado')}>Plan generado</button>}</nav>
   {error&&<div className="aip-error" role="alert">{error}</div>}{mensaje&&<div className="aip-ok" role="status">{mensaje}</div>}
   {vista==='crear'&&<div className="aip-panel"><div className="aip-progress">Evaluación deportiva · Paso {paso+1} de 3<div className="aip-track"><span style={{width:`${(paso+1)*100/3}%`}}/></div></div>

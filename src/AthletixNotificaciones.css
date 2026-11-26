@@ -1,0 +1,12 @@
+.ath-notif{position:relative;flex:none;color:#152635}.ath-notif-bell{position:relative;display:grid;place-items:center;width:44px;height:44px;border:1px solid #d6e0e8;border-radius:12px;background:#fff;color:#152635;cursor:pointer}.ath-notif-count{position:absolute;top:-5px;right:-5px;min-width:20px;padding:2px 4px;border-radius:20px;background:#c5ef79;color:#152635;font-size:11px;font-weight:800}.ath-notif-panel{position:absolute;right:0;top:calc(100% + 10px);width:min(380px,calc(100vw - 24px));background:white;border:1px solid #d6e0e8;border-radius:16px;box-shadow:0 12px 40px #14263526;z-index:120;overflow:hidden;text-align:left}.ath-notif-head,.ath-notif-actions{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:14px 16px;border-bottom:1px solid #e3eaf0}.ath-notif-head button,.ath-notif-actions button{border:0;background:transparent;color:#315a32;cursor:pointer;font-weight:700}.ath-notif-head button{font-size:24px}.ath-notif-actions{font-size:12px}.ath-notif-actions button:disabled{opacity:.45;cursor:default}.ath-notif-list{max-height:min(55vh,440px);overflow-y:auto}.ath-notif-list p,.ath-notif-panel>p{padding:16px;font-size:14px}.ath-notif-item{display:flex;gap:10px;text-align:left;width:100%;border:0;border-bottom:1px solid #e3eaf0;background:#fff;color:#152635;padding:14px 16px;cursor:pointer;font:inherit}.ath-notif-item>span:last-child{display:grid;gap:4px}.ath-notif-item span span,.ath-notif-item small{font-size:12px;color:#526575}.ath-notif-unread{background:#f1f8e7}.ath-notif-dot{width:8px;height:8px;border-radius:50%;margin-top:6px;flex:none}.ath-notif-unread .ath-notif-dot{background:#599b32}.ath-notif-footer{display:block;padding:10px 16px;color:#526575}
+.ath-notif-mobile{display:none}
+@media(max-width:850px){
+ .ath-mobile-bar{gap:8px;}
+ .ath-mobile-brand{min-width:0;gap:7px;}
+ .ath-mobile-brand strong{font-size:clamp(12px,3.5vw,17px);}
+ .ath-notif-mobile{display:flex;align-items:center;gap:8px;margin-left:auto;flex-shrink:0;}
+ .ath-notif-mobile .ath-notif-bell{width:42px;height:42px;background:#1e3045;color:#fff;border-color:#43556c;border-radius:10px;}
+ .ath-notif-mobile .ath-notif-panel{position:fixed;top:70px;right:12px;width:min(380px,calc(100vw - 24px));color:#152635;}
+ .ath-notif-mobile .ath-notif-head strong{color:#152635;}
+}
+@media(max-width:350px){.ath-mobile-bar{padding-inline:10px;gap:6px}.ath-notif-mobile{gap:6px}.ath-menu-toggle{padding-inline:8px}.ath-mobile-brand img{width:30px;height:30px}}

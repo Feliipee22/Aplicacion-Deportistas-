@@ -1,6 +1,9 @@
+import EvaluacionesDeportivas from './EvaluacionesDeportivas';
 
 import React, { useEffect, useState } from 'react';
 import './Dashboard.css';
+import AthletixNotificaciones from './AthletixNotificaciones';
+import {useAthletixPush, desvincularAthletixPush} from './AthletixPush';
 import MisRutinas from './MisRutinas';
 import GestionUsuarios from './GestionUsuarios';
 import EjerciciosEntrenador from './EjerciciosEntrenador';
@@ -173,6 +176,7 @@ const configuracion = {
     modulos: [
       { id: 'vinculos', nombre: 'Mi entrenador', descripcion: 'Vincularte con un entrenador personal.' },
       { id: 'rutinas', nombre: 'Mis rutinas', descripcion: 'Consultar tus entrenamientos.' },
+      { id: 'evaluaciones', nombre: 'Mi progreso deportivo', descripcion: 'Consulta tus evaluaciones y marcas personales.' },
       { id: 'videos', nombre: 'Videos de ejercicios', descripcion: 'Ver los videos de los ejercicios de tus rutinas.' },
       { id: 'alimentacion', nombre: 'Mi alimentación', descripcion: 'Registrar comidas y consultar sus macronutrientes.' },
 
@@ -186,12 +190,23 @@ const configuracion = {
 };
 
 export default function Dashboard({ perfil, onCerrarSesion, onPerfilActualizado }) {
+  useAthletixPush(perfil.id);
+  const [saliendo, setSaliendo] = useState(false);
   const [seccion, setSeccion] = useState('inicio');
   const [confirmarSalida, setConfirmarSalida] = useState(false);
   const [destinoCalendario, setDestinoCalendario] = useState(null);
   const [fechaCalendario, setFechaCalendario] = useState(null);
   const [partidoDesdeAviso, setPartidoDesdeAviso] = useState(null);
   const [menuMovilAbierto, setMenuMovilAbierto] = useState(false);
+  const [esMovil, setEsMovil] = useState(() => window.matchMedia('(max-width: 850px)').matches);
+
+  useEffect(() => {
+    const media = window.matchMedia('(max-width: 850px)');
+    const actualizar = () => setEsMovil(media.matches);
+    media.addEventListener('change', actualizar);
+    actualizar();
+    return () => media.removeEventListener('change', actualizar);
+  }, []);
 
   const navegar = (destino) => {
     setSeccion(destino);
@@ -238,6 +253,8 @@ export default function Dashboard({ perfil, onCerrarSesion, onPerfilActualizado 
           <img src={logoAthletix} alt="" />
           <strong>ATHLETIX</strong>
         </div>
+        <div className="ath-notif-mobile">
+          {esMovil && !menuMovilAbierto && <AthletixNotificaciones key={perfil.id} usuarioId={perfil.id} onNavegar={(destino) => { if (config.modulos.some(m => m.id === destino)) navegar(destino); }} />}
         <button
           type="button"
           className="ath-menu-toggle"
@@ -248,6 +265,7 @@ export default function Dashboard({ perfil, onCerrarSesion, onPerfilActualizado 
         >
           {menuMovilAbierto ? '✕ Cerrar' : '☰ Menú'}
         </button>
+        </div>
       </div>
       {menuMovilAbierto && (
         <button
@@ -329,6 +347,7 @@ export default function Dashboard({ perfil, onCerrarSesion, onPerfilActualizado 
           </div>
 
 
+          {!esMovil && <AthletixNotificaciones key={perfil.id} usuarioId={perfil.id} onNavegar={(destino) => { if (config.modulos.some(m => m.id === destino)) navegar(destino); }} />}
         </header>
 
         {seccion === 'perfil' ? (
@@ -344,6 +363,8 @@ export default function Dashboard({ perfil, onCerrarSesion, onPerfilActualizado 
 
 ) : seccion === 'vinculos' && [2,3].includes(perfil.rol_id) ? (
   <MiEntrenador perfil={perfil} />
+) : seccion === 'evaluaciones' && perfil.rol_id === 3 ? (
+  <EvaluacionesDeportivas deportistaId={perfil.id} />
 ) : seccion === 'progreso' && perfil.rol_id === 2 ? (
   <ProgresoEntrenador />
 ) : seccion === 'actividades' && [1, 2, 3].includes(perfil.rol_id) ? (
@@ -401,7 +422,7 @@ export default function Dashboard({ perfil, onCerrarSesion, onPerfilActualizado 
             <p id="ath-logout-description">¿Quieres salir de tu cuenta de Athletix? Podrás volver a iniciar sesión cuando quieras.</p>
             <div className="ath-logout-actions">
               <button type="button" className="ath-logout-cancel" onClick={() => setConfirmarSalida(false)}>Cancelar</button>
-              <button type="button" className="ath-logout-accept" onClick={() => { setConfirmarSalida(false); onCerrarSesion(); }}>Sí, cerrar sesión</button>
+              <button type="button" className="ath-logout-accept" disabled={saliendo} onClick={async () => { setSaliendo(true); try { await desvincularAthletixPush(); await onCerrarSesion(); setConfirmarSalida(false); } catch (e) { window.alert("No se pudo desvincular el dispositivo. Revisa tu conexión e inténtalo nuevamente."); } finally { setSaliendo(false); } }}>Sí, cerrar sesión</button>
             </div>
           </section>
         </div>
