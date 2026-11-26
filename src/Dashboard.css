@@ -1625,3 +1625,12 @@
  .ath-navigation { min-height: 90px; }
  .ath-nav-button { flex-shrink: 0; }
 }
+
+/* Auditoría: altura coherente del encabezado móvil y pestañas. */
+@media (max-width: 850px) {
+  html { scroll-padding-top: 76px; }
+  .ath-mobile-bar { height: 64px; min-height: 64px; top: 0; }
+  .ath-main { padding-top: 20px; }
+  .ath-main .match-tabs, .ath-main .ath-rutinas-tabs { top: 64px; }
+  .ath-main .ath-food-navigation, .ath-main .pe-detail-heading { position: static; }
+}

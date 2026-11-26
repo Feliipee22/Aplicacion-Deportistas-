@@ -1,3 +1,4 @@
+import { Reportar, MenuAcciones } from "./ModeracionSegura";
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { MapContainer, Marker, Popup, TileLayer, useMap, useMapEvents } from 'react-leaflet';
 import { divIcon } from 'leaflet';
@@ -737,7 +738,7 @@ export default function AthletixMatch({ perfil, partidoDestacadoId = null }) {
                   <span><Icono tipo="calendario" size={15}/>{formatearFecha(p.fecha_hora)}</span>
                   <span><Icono tipo="personas" size={15}/>{ocupados}/{capacidad} participantes · {Math.max(0, capacidad - ocupados)} cupos disponibles</span>
                 </div>
-                <div className="match-event-actions">
+                <div className="match-event-actions">{!propio&&<Reportar tipo="encuentro" id={p.id}/>}
                   {!finalizado && propio && <button type="button" className="match-btn match-btn-secondary" disabled={guardando} onClick={() => abrirEdicion(p)}>Editar</button>}
                   {finalizado ? null : puedeCancelar ? (
                     <button type="button" className="match-btn match-btn-secondary" disabled={guardando}
@@ -936,21 +937,21 @@ export default function AthletixMatch({ perfil, partidoDestacadoId = null }) {
         {cargandoMuro ? <p className="match-my-empty">Cargando publicaciones...</p> : publicacionesVisibles.length === 0 ? <p className="match-my-empty">No hay publicaciones con estos filtros. ¡Inicia una conversación!</p> :
           <div className="match-feed-list">{publicacionesVisibles.map(m => <article className="match-feed-card" key={m.id}>
             <div className="match-feed-meta"><div className="match-feed-author"><strong>{(autoresMuro[m.usuario_id]?.nombre || (m.usuario_id === perfil.id ? 'Tú' : 'Miembro de Athletix'))}</strong>
-              <span className="match-feed-role">{autoresMuro[m.usuario_id]?.rol || 'Miembro'}</span></div><time dateTime={m.creado_en}>{formatearFecha(m.creado_en)}</time></div>
+              <span className="match-feed-role">{autoresMuro[m.usuario_id]?.rol || 'Miembro'}</span></div><time dateTime={m.creado_en}>{formatearFecha(m.creado_en)}</time>{m.usuario_id!==perfil.id ? <Reportar tipo="publicacion" id={m.id}>{puedeGestionar(m.usuario_id)&&<>{puedeEditar(m.usuario_id) && <button type="button" onClick={() => { setEditarMuro({ tipo: 'publicacion', id: m.id }); setTextoEdicion(m.mensaje); setErrorGestion(''); }}>Editar</button>}<button type="button" className="match-delete-action" onClick={() => { setAccionMuro({ tipo: 'publicacion', id: m.id }); setErrorGestion(''); }}>Eliminar</button></>}</Reportar> : puedeGestionar(m.usuario_id)&&<MenuAcciones>{puedeEditar(m.usuario_id) && <button type="button" onClick={() => { setEditarMuro({ tipo: 'publicacion', id: m.id }); setTextoEdicion(m.mensaje); setErrorGestion(''); }}>Editar</button>}<button type="button" className="match-delete-action" onClick={() => { setAccionMuro({ tipo: 'publicacion', id: m.id }); setErrorGestion(''); }}>Eliminar</button></MenuAcciones>}</div>
             <span className="match-feed-place match-feed-city">⌖ {m.ciudad || 'Chile'}</span>
             {m.lugar_nombre && m.lugar_latitud != null && m.lugar_longitud != null && <a className="match-feed-place" href={`https://www.openstreetmap.org/?mlat=${encodeURIComponent(m.lugar_latitud)}&mlon=${encodeURIComponent(m.lugar_longitud)}#map=16/${encodeURIComponent(m.lugar_latitud)}/${encodeURIComponent(m.lugar_longitud)}`} target="_blank" rel="noopener noreferrer">⌖ {m.lugar_nombre} · Ver mapa</a>}
             {m.lugar_id != null && <button type="button" className="match-feed-place" onClick={() => verLugarDesdeMuro(m.lugar_id)}>{nombresLugares.get(String(m.lugar_id)) || 'Recinto deportivo'} · Ver mapa</button>}
             {editarMuro?.tipo === 'publicacion' && editarMuro.id === m.id ? <div className="match-inline-editor"><textarea value={textoEdicion} maxLength={500} onChange={e => setTextoEdicion(e.target.value)} aria-label="Editar publicación"/><div className="match-manage-actions"><button type="button" onClick={guardarEdicionMuro} disabled={procesandoMuro || !textoEdicion.trim()}>Guardar</button><button type="button" onClick={() => setEditarMuro(null)}>Cancelar</button></div></div> : <p>{m.mensaje}</p>}
-            {puedeGestionar(m.usuario_id) && <div className="match-manage-actions">{puedeEditar(m.usuario_id) && <button type="button" onClick={() => { setEditarMuro({ tipo: 'publicacion', id: m.id }); setTextoEdicion(m.mensaje); setErrorGestion(''); }}>Editar</button>}<button type="button" className="match-delete-action" onClick={() => { setAccionMuro({ tipo: 'publicacion', id: m.id }); setErrorGestion(''); }}>Eliminar</button></div>}
+
             <button type="button" className="match-btn match-btn-secondary match-comment-toggle" onClick={() => { setHiloAbierto(hiloAbierto === m.id ? null : m.id); setRespuestaA(null); setTextoComentario(''); }}>
               Comentarios ({comentarios.filter(c => c.publicacion_id === m.id).length})
             </button>
             {hiloAbierto === m.id && <div className="match-comments">
               {comentarios.filter(c => c.publicacion_id === m.id).map(c => <div className="match-comment" key={c.id} style={{ marginLeft: c.respuesta_a ? 14 : 0 }}>
                 <strong>{(autoresMuro[c.usuario_id]?.nombre || (c.usuario_id === perfil.id ? (perfil.apodo_publico || perfil.nombre || 'Tú') : 'Usuario no disponible'))}</strong>
-                {c.respuesta_a && <small> · Respuesta</small>}<small className="match-comment-context"> · {formatearFecha(c.creado_en)}</small>
+<div className="ath-comment-meta">                {c.respuesta_a && <small> · Respuesta</small>}<small className="match-comment-context"> · {formatearFecha(c.creado_en)}</small>{c.usuario_id!==perfil.id ? <Reportar tipo="comentario" id={c.id}>{puedeGestionar(c.usuario_id)&&<>{puedeEditar(c.usuario_id) && <button type="button" onClick={() => { setEditarMuro({ tipo: 'comentario', id: c.id }); setTextoEdicion(c.mensaje); setErrorGestion(''); }}>Editar</button>}<button type="button" className="match-delete-action" onClick={() => { setAccionMuro({ tipo: 'comentario', id: c.id }); setErrorGestion(''); }}>Eliminar</button></>}</Reportar> : puedeGestionar(c.usuario_id)&&<MenuAcciones>{puedeEditar(c.usuario_id) && <button type="button" onClick={() => { setEditarMuro({ tipo: 'comentario', id: c.id }); setTextoEdicion(c.mensaje); setErrorGestion(''); }}>Editar</button>}<button type="button" className="match-delete-action" onClick={() => { setAccionMuro({ tipo: 'comentario', id: c.id }); setErrorGestion(''); }}>Eliminar</button></MenuAcciones>}</div>
                 {editarMuro?.tipo === 'comentario' && editarMuro.id === c.id ? <div className="match-inline-editor"><textarea value={textoEdicion} maxLength={500} onChange={e => setTextoEdicion(e.target.value)} aria-label="Editar comentario"/><div className="match-manage-actions"><button type="button" onClick={guardarEdicionMuro} disabled={procesandoMuro || !textoEdicion.trim()}>Guardar</button><button type="button" onClick={() => setEditarMuro(null)}>Cancelar</button></div></div> : <p>{c.mensaje}</p>}
-                {puedeGestionar(c.usuario_id) && <div className="match-manage-actions">{puedeEditar(c.usuario_id) && <button type="button" onClick={() => { setEditarMuro({ tipo: 'comentario', id: c.id }); setTextoEdicion(c.mensaje); setErrorGestion(''); }}>Editar</button>}<button type="button" className="match-delete-action" onClick={() => { setAccionMuro({ tipo: 'comentario', id: c.id }); setErrorGestion(''); }}>Eliminar</button></div>}
+
                 <button type="button" className="match-comment-reply" onClick={() => { setRespuestaA(c.id); setTextoComentario(''); }}><span aria-hidden="true">↳</span> Responder</button>
               </div>)}
               {errorComentarios && <p className="match-error" role="alert">{errorComentarios}</p>}

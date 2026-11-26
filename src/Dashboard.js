@@ -1,3 +1,4 @@
+import { PanelDenuncias } from "./ModeracionSegura";
 import EvaluacionesDeportivas from './EvaluacionesDeportivas';
 
 import React, { useEffect, useState } from 'react';
@@ -208,6 +209,11 @@ export default function Dashboard({ perfil, onCerrarSesion, onPerfilActualizado 
     return () => media.removeEventListener('change', actualizar);
   }, []);
 
+  // Cada módulo comienza arriba; no hereda el desplazamiento del anterior.
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+  }, [seccion]);
+
   const navegar = (destino) => {
     setSeccion(destino);
     setMenuMovilAbierto(false);
@@ -386,7 +392,7 @@ export default function Dashboard({ perfil, onCerrarSesion, onPerfilActualizado 
 ) : seccion === 'alimentacion' && [2, 3].includes(perfil.rol_id) ? (
    <MiAlimentacion usuarioId={perfil.id} />
 ) : seccion === 'reportes' && perfil.rol_id === 1 ? (
-  <ReportesAdmin perfil={perfil} />
+  <><PanelDenuncias/><ReportesAdmin perfil={perfil} /></>
 ) : seccion === 'avisos' && [1, 2, 3].includes(perfil.rol_id) ? (
   <Avisos perfil={perfil} onVerPartido={(id) => { setPartidoDesdeAviso(id); navegar('mapa'); }} />
 ) : (

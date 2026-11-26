@@ -477,7 +477,7 @@ await cargarEjercicios();
         <div className="ath-exlib-toolbar">
           <div>
             <h3>Ejercicios registrados</h3>
-            <p>Biblioteca conectada con Supabase.</p>
+            <p>Organiza y consulta tus ejercicios.</p>
           </div>
 
           <button
