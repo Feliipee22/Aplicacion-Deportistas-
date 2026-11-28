@@ -46,6 +46,7 @@
     ]
   },
   "devDependencies": {
+    "@capacitor/assets": "^4.0.0",
     "supabase": "^2.120.0"
   }
 }

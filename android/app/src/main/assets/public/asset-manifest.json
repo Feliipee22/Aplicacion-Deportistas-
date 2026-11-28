@@ -1,16 +1,30 @@
 {
   "files": {
-    "main.css": "/static/css/main.6d94033a.css",
-    "main.js": "/static/js/main.cbde4db7.js",
+    "main.css": "/static/css/main.58e0a34a.css",
+    "main.js": "/static/js/main.47de07b2.js",
+    "static/js/551.20a137b9.chunk.js": "/static/js/551.20a137b9.chunk.js",
+    "static/css/951.f5dc8918.chunk.css": "/static/css/951.f5dc8918.chunk.css",
+    "static/js/951.3116cfb3.chunk.js": "/static/js/951.3116cfb3.chunk.js",
+    "static/css/931.e886ff25.chunk.css": "/static/css/931.e886ff25.chunk.css",
+    "static/js/931.e91dbedf.chunk.js": "/static/js/931.e91dbedf.chunk.js",
     "static/js/453.7d693a5e.chunk.js": "/static/js/453.7d693a5e.chunk.js",
+    "static/js/296.710d4033.chunk.js": "/static/js/296.710d4033.chunk.js",
+    "static/js/375.057f955a.chunk.js": "/static/js/375.057f955a.chunk.js",
     "static/media/athletix-logo.jpg": "/static/media/athletix-logo.2ac1c5ace18837c38c89.jpg",
     "index.html": "/index.html",
-    "main.6d94033a.css.map": "/static/css/main.6d94033a.css.map",
-    "main.cbde4db7.js.map": "/static/js/main.cbde4db7.js.map",
-    "453.7d693a5e.chunk.js.map": "/static/js/453.7d693a5e.chunk.js.map"
+    "main.58e0a34a.css.map": "/static/css/main.58e0a34a.css.map",
+    "main.47de07b2.js.map": "/static/js/main.47de07b2.js.map",
+    "551.20a137b9.chunk.js.map": "/static/js/551.20a137b9.chunk.js.map",
+    "951.f5dc8918.chunk.css.map": "/static/css/951.f5dc8918.chunk.css.map",
+    "951.3116cfb3.chunk.js.map": "/static/js/951.3116cfb3.chunk.js.map",
+    "931.e886ff25.chunk.css.map": "/static/css/931.e886ff25.chunk.css.map",
+    "931.e91dbedf.chunk.js.map": "/static/js/931.e91dbedf.chunk.js.map",
+    "453.7d693a5e.chunk.js.map": "/static/js/453.7d693a5e.chunk.js.map",
+    "296.710d4033.chunk.js.map": "/static/js/296.710d4033.chunk.js.map",
+    "375.057f955a.chunk.js.map": "/static/js/375.057f955a.chunk.js.map"
   },
   "entrypoints": [
-    "static/css/main.6d94033a.css",
-    "static/js/main.cbde4db7.js"
+    "static/css/main.58e0a34a.css",
+    "static/js/main.47de07b2.js"
   ]
 }
