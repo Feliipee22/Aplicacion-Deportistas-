@@ -16,7 +16,6 @@ export default function EntrenamientoGuiado({ planId, sesionIndex, sesion, progr
   const [state, setState] = useState(initial);
   const [now, setNow] = useState(Date.now());
   const [loaded, setLoaded] = useState(false);
-  const [showVideo, setShowVideo] = useState(false);
   const [confirmReset, setConfirmReset] = useState(false);
   const [confirmFinish, setConfirmFinish] = useState(false);
 
@@ -39,14 +38,13 @@ export default function EntrenamientoGuiado({ planId, sesionIndex, sesion, progr
     if (next.phase === 'rest' && next.restUntil && next.restUntil <= Date.now()) { next.phase = 'exercise'; next.restUntil = null; }
     setState(next);
     setLoaded(true);
-  }, [key, exercises.length]);
+  }, [key, exercises.length, planId]);
 
   useEffect(() => {
     if (!key || !loaded) return;
     try { localStorage.setItem(key, JSON.stringify(state)); } catch (_) { /* browser storage blocked */ }
   }, [key, loaded, state]);
   useEffect(() => { const id = setInterval(() => setNow(Date.now()), 500); return () => clearInterval(id); }, []);
-  useEffect(() => { setShowVideo(false); }, [state.index]);
   useEffect(() => {
     const previous = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
@@ -85,7 +83,7 @@ export default function EntrenamientoGuiado({ planId, sesionIndex, sesion, progr
   const skipRest = () => setState(s => ({ ...s, phase: 'exercise', restUntil: null, restRemaining: 0 }));
   const finishEarly = () => { setState(s => ({ ...freeze(s), phase: 'summary', finished: true, restUntil: null, restRemaining: 0 })); setConfirmFinish(false); };
   const goBack = () => { if (isRunning) pause(); onBack(); };
-  const reset = () => { setState(initial()); setConfirmReset(false); setShowVideo(false); };
+  const reset = () => { setState(initial()); setConfirmReset(false); };
   const register = () => { if (isRunning) pause(); onRegister(Math.max(1, Math.round(seconds)), exercises.map((e,i)=>({nombre:e.nombre || "Ejercicio",series:state.completed.includes(i)?count(e.series):i===state.index?state.seriesDone:0})).filter(e=>e.series>0)); };
 
   if (!key || !loaded) return <section className="eg-wrap"><p>Preparando tu entrenamiento…</p><button onClick={onBack}>Volver</button></section>;

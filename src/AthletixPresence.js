@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { supabase } from './supabase';
 
 const Context = createContext({ onlineIds: [], connected: false, estados: {}, estadoDe: () => 'desconectado' });
@@ -88,8 +88,8 @@ export function AthletixPresenceProvider({ perfil, children }) {
     Object.entries(registros).map(([usuario, registro]) => [usuario, calcularEstado(registro, ahora)])
   ), [registros, ahora]);
   const onlineIds = useMemo(() => Object.keys(estados).filter(usuario => estados[usuario] === 'en-linea'), [estados]);
-  const estadoDe = (usuario) => estados[String(usuario)] || 'desconectado';
-  const value = useMemo(() => ({ onlineIds, connected, estados, estadoDe }), [onlineIds, connected, estados]);
+  const estadoDe = useCallback((usuario) => estados[String(usuario)] || 'desconectado', [estados]);
+  const value = useMemo(() => ({ onlineIds, connected, estados, estadoDe }), [onlineIds, connected, estados, estadoDe]);
   return <Context.Provider value={value}>{children}</Context.Provider>;
 }
 

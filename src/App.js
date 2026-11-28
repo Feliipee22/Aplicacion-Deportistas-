@@ -3,6 +3,7 @@ import {AthletixPresenceProvider} from './AthletixPresence';
 import React, { useEffect, useState } from 'react';
 import { supabase } from './supabase';
 import Login from './Login';
+import { NuevaClave } from './AthletixCuenta';
 import Dashboard from './Dashboard';
 
 const cuentaActiva = (valor) => valor === true || ['true', 'activo', 'activa', 'active', '1'].includes(String(valor).trim().toLowerCase());
@@ -14,6 +15,7 @@ const nombresRoles = {
 };
 
 function App() {
+  const [recuperacion, setRecuperacion] = useState(false);
   const [sesion, setSesion] = useState(undefined);
   const [perfil, setPerfil] = useState(null);
   const [cargandoPerfil, setCargandoPerfil] = useState(false);
@@ -32,8 +34,9 @@ function App() {
     });
 
     const { data: { subscription } } =
-      supabase.auth.onAuthStateChange((_evento, nuevaSesion) => {
+      supabase.auth.onAuthStateChange((evento, nuevaSesion) => {
         if (activo) {
+          if (evento === "PASSWORD_RECOVERY") setRecuperacion(true);
           setSesion(nuevaSesion);
         }
       });
@@ -138,6 +141,8 @@ function App() {
   if (sesion === undefined) {
     return <p>Iniciando Athletix...</p>;
   }
+
+  if (recuperacion && sesion) return <NuevaClave finalizar={async()=>{await supabase.auth.signOut();setRecuperacion(false);}}/>;
 
   if (!sesion) {
     return <Login />;

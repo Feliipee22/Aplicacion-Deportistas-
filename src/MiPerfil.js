@@ -2,15 +2,14 @@ import { Bloqueados, SolicitarBaja } from "./ModeracionSegura";
 import React, { useEffect, useState } from 'react';
 import { supabase } from './supabase';
 import './MiPerfil.css';
+import PrivacidadMensajeria from './PrivacidadMensajeria';
+import { InformacionCuenta, SoporteCuenta } from './AthletixCuenta';
 
 export default function MiPerfil({ perfil, onPerfilActualizado, onCerrarSesion }) {
   const [deportivo, setDeportivo] = useState({deporte:'',nivel:'Principiante',objetivo:'Mejorar condición física',frecuencia:3,preferencias:'',usar_ia:false});
   const [cargaDeportiva, setCargaDeportiva] = useState(true);
   useEffect(() => { let activo=true; if (perfil.rol_id !== 3) return; setCargaDeportiva(true); supabase.from('ath_perfil_deportivo').select('*').eq('usuario_id',perfil.id).maybeSingle().then(({data,error})=>{if(!activo)return; if(error){setError('No pudimos cargar tu perfil deportivo.');return;} if(data)setDeportivo(data); setCargaDeportiva(false);}); return ()=>{activo=false;}; },[perfil.id,perfil.rol_id]);
   const campo = (k,v) => setDeportivo(d=>({...d,[k]:v}));
-  const [privacidad,setPrivacidad]=useState({notificaciones:true,mostrar_conexion:true});
-  const [privacidadLista,setPrivacidadLista]=useState(false);
-  useEffect(()=>{let activo=true;setPrivacidadLista(false);supabase.from('ath_preferencias_privacidad').select('notificaciones,mostrar_conexion').eq('usuario_id',perfil.id).maybeSingle().then(({data,error})=>{if(!activo)return;if(error){setError('No pudimos cargar tus preferencias.');return;}setPrivacidad(data||{notificaciones:true,mostrar_conexion:true});setPrivacidadLista(true);});return()=>{activo=false;};},[perfil.id]);
   const [vista, setVista] = useState('resumen');
   const [nombre, setNombre] = useState(perfil.nombre || '');
   const [telefono, setTelefono] = useState(perfil.telefono || '');
@@ -67,7 +66,9 @@ export default function MiPerfil({ perfil, onPerfilActualizado, onCerrarSesion }
     ['clave','Contraseña y seguridad','Actualiza tu contraseña','◇'],
     ['bloqueos','Usuarios bloqueados','Gestiona tus contactos','◇'],
     ['baja','Eliminar cuenta','Solicitar eliminación de tus datos','◇'],
-    ['privacidad','Privacidad y notificaciones','Controla tu conexión y alertas','◇']
+    ['privacidad','Privacidad y notificaciones','Controla tu conexión y alertas','◇'],
+    ['soporte','Ayuda y soporte','Consultas y problemas','?'],
+    ['acerca','Acerca de Athletix','Información, privacidad y términos','i']
   ];
   return <div className="ath-perfil">
     <div className="ath-perfil-hero"><div className="ath-perfil-avatar">{(perfil.nombre || '?').trim().charAt(0).toUpperCase()}</div><div><h2>{perfil.nombre}</h2><p>{rol} · Cuenta Athletix</p></div></div>
@@ -80,8 +81,10 @@ export default function MiPerfil({ perfil, onPerfilActualizado, onCerrarSesion }
 
       <button type="button" className="ath-perfil-logout" onClick={()=>setConfirmarSalida(true)}>↪ Cerrar sesión</button>
     </>}
+    {vista === 'acerca' && <InformacionCuenta/>}
+    {vista === 'soporte' && <SoporteCuenta perfil={perfil}/>}
     {vista === 'bloqueos' && <Bloqueados/>}{vista === 'baja' && <SolicitarBaja/>}{vista === 'deportivo' && <form className="ath-perfil-card" onSubmit={guardarDeportivo}><h3>Perfil deportivo</h3><label>Deporte principal<input maxLength={80} value={deportivo.deporte} onChange={e=>campo('deporte',e.target.value)} placeholder="Ej. fútbol, gimnasio"/></label><label>Experiencia<select value={deportivo.nivel} onChange={e=>campo('nivel',e.target.value)}>{['Principiante','Intermedio','Avanzado'].map(x=><option key={x}>{x}</option>)}</select></label><label>Objetivo<select value={deportivo.objetivo} onChange={e=>campo('objetivo',e.target.value)}>{['Mejorar condición física','Ganar fuerza','Ganar masa muscular','Mejorar rendimiento deportivo','Mantenerme activo'].map(x=><option key={x}>{x}</option>)}</select></label><label>Días de entrenamiento por semana<select value={deportivo.frecuencia} onChange={e=>campo('frecuencia',Number(e.target.value))}>{Array.from({length:8},(_,i)=><option key={i}>{i}</option>)}</select></label><label>Equipamiento, disponibilidad y preferencias<textarea maxLength={400} rows={3} value={deportivo.preferencias} onChange={e=>campo('preferencias',e.target.value)} placeholder="Ej. mancuernas, 30 minutos por la tarde"/></label><label className="ath-perfil-check"><input type="checkbox" checked={deportivo.usar_ia} onChange={e=>campo('usar_ia',e.target.checked)}/> Usar mi perfil para personalizar el asistente de entrenamiento</label><button disabled={!!ocupado || cargaDeportiva} type="submit">{ocupado==='deportivo'?'Guardando…':'Guardar perfil'}</button></form>}
-    {vista === 'privacidad' && <form className="ath-perfil-card" onSubmit={e=>{e.preventDefault();ejecutar('privacidad',async()=>{const {error:err}=await supabase.from('ath_preferencias_privacidad').upsert({...privacidad,usuario_id:perfil.id});if(err)throw new Error('No pudimos guardar tus preferencias.');setMensaje('Preferencias guardadas.');setVista('resumen');});}}><h3>Privacidad y notificaciones</h3><label className="ath-perfil-check"><input type="checkbox" checked={privacidad.notificaciones} onChange={e=>setPrivacidad(p=>({...p,notificaciones:e.target.checked}))}/> Recibir nuevas notificaciones</label><p>Incluye alertas dentro de la aplicación y nuevos envíos al teléfono.</p><label className="ath-perfil-check"><input type="checkbox" checked={privacidad.mostrar_conexion} onChange={e=>setPrivacidad(p=>({...p,mostrar_conexion:e.target.checked}))}/> Mostrar mi estado de conexión</label><button type="submit" disabled={!privacidadLista||!!ocupado}>Guardar preferencias</button></form>}
+    {vista === 'privacidad' && <PrivacidadMensajeria key={perfil.id} usuarioId={perfil.id}/>}
     {vista === 'datos' && <form onSubmit={guardarDatos} className="ath-perfil-card"><h3>Información personal</h3><p>Actualiza los datos que aparecen en tu perfil.</p><label>Nombre y apellido<input value={nombre} maxLength={120} onChange={e=>setNombre(e.target.value)} required /></label><label>Teléfono (opcional)<input type="tel" autoComplete="tel" value={telefono} onChange={e=>setTelefono(e.target.value)} placeholder="+56 9 1234 5678" /></label><button disabled={!!ocupado} type="submit">{ocupado === 'datos' ? 'Guardando…' : 'Guardar cambios'}</button></form>}
     {vista === 'correo' && <form onSubmit={cambiarCorreo} className="ath-perfil-card"><h3>Cambiar correo electrónico</h3><p>Para proteger tu cuenta, es posible que debas confirmar el nuevo correo.</p><label>Correo actual<input value={correo} readOnly type="email" /></label><label>Nuevo correo<input type="email" autoComplete="email" value={nuevoCorreo} onChange={e=>setNuevoCorreo(e.target.value)} placeholder="nombre@correo.cl" required /></label><button disabled={!!ocupado} type="submit">{ocupado === 'correo' ? 'Enviando…' : 'Continuar'}</button></form>}
     {vista === 'clave' && <form onSubmit={cambiarClave} className="ath-perfil-card"><h3>Cambiar contraseña</h3><p>Usa una contraseña nueva de al menos 8 caracteres.</p><label>Nueva contraseña<input type="password" autoComplete="new-password" minLength={8} value={clave} onChange={e=>setClave(e.target.value)} required /></label><label>Confirmar contraseña<input type="password" autoComplete="new-password" minLength={8} value={confirmacion} onChange={e=>setConfirmacion(e.target.value)} required /></label><button disabled={!!ocupado} type="submit">{ocupado === 'clave' ? 'Actualizando…' : 'Guardar contraseña'}</button></form>}

@@ -276,7 +276,7 @@ export default function CalendarioDeportivo({ perfil, fechaInicial = null }) {
   const [mensaje, setMensaje] = useState('');
   const [errorAccion, setErrorAccion] = useState('');
   const [revision, setRevision] = useState(0);
-  const [filtroEquipo, setFiltroEquipo] = useState('TODOS');
+  const filtroEquipo = 'TODOS';
   const [filtroTipo, setFiltroTipo] = useState('TODOS');
   const [actividadElegidaId, setActividadElegidaId] = useState(null);
   const [formularioVisible, setFormularioVisible] = useState(false);
@@ -413,8 +413,6 @@ export default function CalendarioDeportivo({ perfil, fechaInicial = null }) {
   });
   const delDia = porDia.get(diaElegido) || [];
   const actividadElegida = delDia.find((item) => item.id === actividadElegidaId) || null;
-  const cantidadProgramadas = filtradas.filter((item) => item.estado !== 'CANCELADA').length;
-  const cantidadCanceladas = filtradas.length - cantidadProgramadas;
   const fechaHoy = fechaClave(new Date());
   const partesSalto = fechaDesdeClave(fechaSalto);
 

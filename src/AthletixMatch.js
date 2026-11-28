@@ -168,18 +168,19 @@ function Icono({ tipo, size = 19 }) {
 
 function MarcadoresAgrupados({ lugares, seleccionado, elegir }) {
   const mapa = useMap();
-  const [revision, setRevision] = useState(0);
+  const [, setRevision] = useState(0);
   useMapEvents({ zoomend: () => setRevision(v => v + 1), moveend: () => setRevision(v => v + 1) });
+  const zoomActual = mapa.getZoom();
   const grupos = useMemo(() => {
     const celdas = new Map();
     lugares.forEach(l => {
-      const punto = mapa.project([Number(l.latitud), Number(l.longitud)], mapa.getZoom());
+      const punto = mapa.project([Number(l.latitud), Number(l.longitud)], zoomActual);
       const clave = seleccionado?.id === l.id ? `seleccion-${l.id}` : `${Math.floor(punto.x / 52)}:${Math.floor(punto.y / 52)}`;
       if (!celdas.has(clave)) celdas.set(clave, []);
       celdas.get(clave).push(l);
     });
     return [...celdas.entries()];
-  }, [lugares, mapa, revision, seleccionado?.id]);
+  }, [lugares, mapa, zoomActual, seleccionado?.id]);
   return grupos.map(([clave, lista]) => {
     const l = lista[0];
     if (lista.length === 1) return <Marker key={clave} icon={iconoMarcador} position={[Number(l.latitud), Number(l.longitud)]} eventHandlers={{click: () => elegir(l.id)}}><Popup><strong>{l.nombre}</strong><div>{l.direccion}</div></Popup></Marker>;
@@ -232,7 +233,6 @@ export default function AthletixMatch({ perfil, partidoDestacadoId = null }) {
   const [errorEdicion, setErrorEdicion] = useState('');
   useEffect(() => { if (partidoDestacadoId != null) setPestana('partidos'); }, [partidoDestacadoId]);
   const [zona, setZona] = useState(ZONA_INICIAL);
-  const [ciudadElegida, setCiudadElegida] = useState('santiago');
   const [ciudadLibre, setCiudadLibre] = useState('');
   const [buscandoCiudad, setBuscandoCiudad] = useState(false);
   const [errorCiudad, setErrorCiudad] = useState('');
@@ -293,9 +293,8 @@ export default function AthletixMatch({ perfil, partidoDestacadoId = null }) {
     return () => { activo = false; };
   }, [zona, recargaMapa]);
 
-  const cambiarZona = (nuevaZona, idCiudad = '') => {
+  const cambiarZona = (nuevaZona) => {
     setZona(nuevaZona);
-    setCiudadElegida(idCiudad);
     setBusqueda('');
     setDeporteFiltro('Todos');
     setLugarId(null);
@@ -305,13 +304,6 @@ export default function AthletixMatch({ perfil, partidoDestacadoId = null }) {
     setErrorCiudad('');
     setFormularioAbierto(false);
     setPestana('mapa');
-  };
-
-  const seleccionarCiudad = (evento) => {
-    const id = evento.target.value;
-    if (!id) { setCiudadElegida(''); return; }
-    const ciudad = CIUDADES.find((c) => c.id === id);
-    if (ciudad) { setCiudadLibre(''); cambiarZona(ciudad, id); }
   };
 
   const buscarOtraCiudad = async (evento) => {
@@ -432,7 +424,6 @@ export default function AthletixMatch({ perfil, partidoDestacadoId = null }) {
     setMensajeApodo('Apodo actualizado.');
     await Promise.all([cargarMuro(), cargarComentarios()]);
   };
-  const [lugarPublicacion, setLugarPublicacion] = useState('');
   const [mostrarPublicacion, setMostrarPublicacion] = useState(false);
   const [mostrarUbicacionPublicacion, setMostrarUbicacionPublicacion] = useState(true);
   const [cargandoMuro, setCargandoMuro] = useState(false);
@@ -473,7 +464,7 @@ export default function AthletixMatch({ perfil, partidoDestacadoId = null }) {
     const tabla = editarMuro.tipo === 'publicacion' ? 'muro_comunidad' : 'muro_comentarios';
     const { error } = await supabase.from(tabla).update({ mensaje }).eq('id', editarMuro.id).eq('usuario_id', perfil.id);
     setProcesandoMuro(false);
-    if (error) { setErrorGestion('No se pudo editar. Comprueba los permisos de Supabase.'); return; }
+    if (error) { setErrorGestion('No se pudo editar. Inténtalo nuevamente.'); return; }
     setEditarMuro(null); setTextoEdicion('');
     if (editarMuro.tipo === 'publicacion') await cargarMuro(); else await cargarComentarios();
   };
@@ -499,7 +490,7 @@ export default function AthletixMatch({ perfil, partidoDestacadoId = null }) {
       .order('creado_en', { ascending: false }).limit(150);
     if (error) {
       console.error('Athletix Match comunidad:', error);
-      setErrorMuro('No se pudieron cargar las publicaciones. Revisa los permisos de Supabase.');
+      setErrorMuro('No se pudieron cargar las publicaciones. Inténtalo nuevamente.');
     } else {
       setPublicaciones(data || []);
       const ids = [...new Set((data || []).map(m => m.usuario_id).filter(Boolean))];
@@ -533,7 +524,7 @@ export default function AthletixMatch({ perfil, partidoDestacadoId = null }) {
       .order('creado_en', { ascending: true }).limit(1000);
     if (error) {
       console.error('Comentarios:', error);
-      setErrorComentarios('No se pudieron cargar los comentarios. Comprueba que instalaste el SQL de la v9.');
+      setErrorComentarios('No se pudieron cargar los comentarios. Inténtalo nuevamente.');
       return;
     }
     setErrorComentarios('');
@@ -566,7 +557,6 @@ export default function AthletixMatch({ perfil, partidoDestacadoId = null }) {
 
   const lugaresComunidad = lugaresGuardados.filter(l => l.id_db != null);
   const nombresLugares = new Map(lugaresGuardados.map(l => [String(l.id_db), l.nombre]));
-  const recintosBuscados = lugaresComunidad.filter(l => normalizar(`${l.nombre} ${l.direccion || ''}`).includes(normalizar(busquedaRecintoPublicacion))).slice(0, 35);
   // Búsqueda real en OpenStreetMap (Nominatim). Una solicitud por campo y pausa >= 1 s.
   // No se admite texto libre como ubicación válida: hay que seleccionar un resultado.
   useEffect(() => {
@@ -632,7 +622,7 @@ export default function AthletixMatch({ perfil, partidoDestacadoId = null }) {
       setErrorMuro('No se pudo publicar. Comprueba los permisos del muro.');
       return;
     }
-    setMensajeNuevo(''); setLugarPublicacion(''); setBusquedaRecinto(''); setBusquedaRecintoPublicacion(''); setUbicacionElegida(null);
+    setMensajeNuevo(''); setBusquedaRecinto(''); setBusquedaRecintoPublicacion(''); setUbicacionElegida(null);
     setMostrarPublicacion(false);
     await cargarMuro();
   };
@@ -738,7 +728,7 @@ export default function AthletixMatch({ perfil, partidoDestacadoId = null }) {
                   <span><Icono tipo="calendario" size={15}/>{formatearFecha(p.fecha_hora)}</span>
                   <span><Icono tipo="personas" size={15}/>{ocupados}/{capacidad} participantes · {Math.max(0, capacidad - ocupados)} cupos disponibles</span>
                 </div>
-                <div className="match-event-actions">{!propio&&<Reportar tipo="encuentro" id={p.id}/>}
+                <div className="match-event-actions">{!propio&&<Reportar tipo="encuentro" id={p.id} contenido={p.deporte}/>}
                   {!finalizado && propio && <button type="button" className="match-btn match-btn-secondary" disabled={guardando} onClick={() => abrirEdicion(p)}>Editar</button>}
                   {finalizado ? null : puedeCancelar ? (
                     <button type="button" className="match-btn match-btn-secondary" disabled={guardando}
@@ -937,7 +927,7 @@ export default function AthletixMatch({ perfil, partidoDestacadoId = null }) {
         {cargandoMuro ? <p className="match-my-empty">Cargando publicaciones...</p> : publicacionesVisibles.length === 0 ? <p className="match-my-empty">No hay publicaciones con estos filtros. ¡Inicia una conversación!</p> :
           <div className="match-feed-list">{publicacionesVisibles.map(m => <article className="match-feed-card" key={m.id}>
             <div className="match-feed-meta"><div className="match-feed-author"><strong>{(autoresMuro[m.usuario_id]?.nombre || (m.usuario_id === perfil.id ? 'Tú' : 'Miembro de Athletix'))}</strong>
-              <span className="match-feed-role">{autoresMuro[m.usuario_id]?.rol || 'Miembro'}</span></div><time dateTime={m.creado_en}>{formatearFecha(m.creado_en)}</time>{m.usuario_id!==perfil.id ? <Reportar tipo="publicacion" id={m.id}>{puedeGestionar(m.usuario_id)&&<>{puedeEditar(m.usuario_id) && <button type="button" onClick={() => { setEditarMuro({ tipo: 'publicacion', id: m.id }); setTextoEdicion(m.mensaje); setErrorGestion(''); }}>Editar</button>}<button type="button" className="match-delete-action" onClick={() => { setAccionMuro({ tipo: 'publicacion', id: m.id }); setErrorGestion(''); }}>Eliminar</button></>}</Reportar> : puedeGestionar(m.usuario_id)&&<MenuAcciones>{puedeEditar(m.usuario_id) && <button type="button" onClick={() => { setEditarMuro({ tipo: 'publicacion', id: m.id }); setTextoEdicion(m.mensaje); setErrorGestion(''); }}>Editar</button>}<button type="button" className="match-delete-action" onClick={() => { setAccionMuro({ tipo: 'publicacion', id: m.id }); setErrorGestion(''); }}>Eliminar</button></MenuAcciones>}</div>
+              <span className="match-feed-role">{autoresMuro[m.usuario_id]?.rol || 'Miembro'}</span></div><time dateTime={m.creado_en}>{formatearFecha(m.creado_en)}</time>{m.usuario_id!==perfil.id ? <Reportar tipo="publicacion" id={m.id} contenido={m.mensaje}>{puedeGestionar(m.usuario_id)&&<>{puedeEditar(m.usuario_id) && <button type="button" onClick={() => { setEditarMuro({ tipo: 'publicacion', id: m.id }); setTextoEdicion(m.mensaje); setErrorGestion(''); }}>Editar</button>}<button type="button" className="match-delete-action" onClick={() => { setAccionMuro({ tipo: 'publicacion', id: m.id }); setErrorGestion(''); }}>Eliminar</button></>}</Reportar> : puedeGestionar(m.usuario_id)&&<MenuAcciones>{puedeEditar(m.usuario_id) && <button type="button" onClick={() => { setEditarMuro({ tipo: 'publicacion', id: m.id }); setTextoEdicion(m.mensaje); setErrorGestion(''); }}>Editar</button>}<button type="button" className="match-delete-action" onClick={() => { setAccionMuro({ tipo: 'publicacion', id: m.id }); setErrorGestion(''); }}>Eliminar</button></MenuAcciones>}</div>
             <span className="match-feed-place match-feed-city">⌖ {m.ciudad || 'Chile'}</span>
             {m.lugar_nombre && m.lugar_latitud != null && m.lugar_longitud != null && <a className="match-feed-place" href={`https://www.openstreetmap.org/?mlat=${encodeURIComponent(m.lugar_latitud)}&mlon=${encodeURIComponent(m.lugar_longitud)}#map=16/${encodeURIComponent(m.lugar_latitud)}/${encodeURIComponent(m.lugar_longitud)}`} target="_blank" rel="noopener noreferrer">⌖ {m.lugar_nombre} · Ver mapa</a>}
             {m.lugar_id != null && <button type="button" className="match-feed-place" onClick={() => verLugarDesdeMuro(m.lugar_id)}>{nombresLugares.get(String(m.lugar_id)) || 'Recinto deportivo'} · Ver mapa</button>}
@@ -949,7 +939,7 @@ export default function AthletixMatch({ perfil, partidoDestacadoId = null }) {
             {hiloAbierto === m.id && <div className="match-comments">
               {comentarios.filter(c => c.publicacion_id === m.id).map(c => <div className="match-comment" key={c.id} style={{ marginLeft: c.respuesta_a ? 14 : 0 }}>
                 <strong>{(autoresMuro[c.usuario_id]?.nombre || (c.usuario_id === perfil.id ? (perfil.apodo_publico || perfil.nombre || 'Tú') : 'Usuario no disponible'))}</strong>
-<div className="ath-comment-meta">                {c.respuesta_a && <small> · Respuesta</small>}<small className="match-comment-context"> · {formatearFecha(c.creado_en)}</small>{c.usuario_id!==perfil.id ? <Reportar tipo="comentario" id={c.id}>{puedeGestionar(c.usuario_id)&&<>{puedeEditar(c.usuario_id) && <button type="button" onClick={() => { setEditarMuro({ tipo: 'comentario', id: c.id }); setTextoEdicion(c.mensaje); setErrorGestion(''); }}>Editar</button>}<button type="button" className="match-delete-action" onClick={() => { setAccionMuro({ tipo: 'comentario', id: c.id }); setErrorGestion(''); }}>Eliminar</button></>}</Reportar> : puedeGestionar(c.usuario_id)&&<MenuAcciones>{puedeEditar(c.usuario_id) && <button type="button" onClick={() => { setEditarMuro({ tipo: 'comentario', id: c.id }); setTextoEdicion(c.mensaje); setErrorGestion(''); }}>Editar</button>}<button type="button" className="match-delete-action" onClick={() => { setAccionMuro({ tipo: 'comentario', id: c.id }); setErrorGestion(''); }}>Eliminar</button></MenuAcciones>}</div>
+<div className="ath-comment-meta">                {c.respuesta_a && <small> · Respuesta</small>}<small className="match-comment-context"> · {formatearFecha(c.creado_en)}</small>{c.usuario_id!==perfil.id ? <Reportar tipo="comentario" id={c.id} contenido={c.mensaje}>{puedeGestionar(c.usuario_id)&&<>{puedeEditar(c.usuario_id) && <button type="button" onClick={() => { setEditarMuro({ tipo: 'comentario', id: c.id }); setTextoEdicion(c.mensaje); setErrorGestion(''); }}>Editar</button>}<button type="button" className="match-delete-action" onClick={() => { setAccionMuro({ tipo: 'comentario', id: c.id }); setErrorGestion(''); }}>Eliminar</button></>}</Reportar> : puedeGestionar(c.usuario_id)&&<MenuAcciones>{puedeEditar(c.usuario_id) && <button type="button" onClick={() => { setEditarMuro({ tipo: 'comentario', id: c.id }); setTextoEdicion(c.mensaje); setErrorGestion(''); }}>Editar</button>}<button type="button" className="match-delete-action" onClick={() => { setAccionMuro({ tipo: 'comentario', id: c.id }); setErrorGestion(''); }}>Eliminar</button></MenuAcciones>}</div>
                 {editarMuro?.tipo === 'comentario' && editarMuro.id === c.id ? <div className="match-inline-editor"><textarea value={textoEdicion} maxLength={500} onChange={e => setTextoEdicion(e.target.value)} aria-label="Editar comentario"/><div className="match-manage-actions"><button type="button" onClick={guardarEdicionMuro} disabled={procesandoMuro || !textoEdicion.trim()}>Guardar</button><button type="button" onClick={() => setEditarMuro(null)}>Cancelar</button></div></div> : <p>{c.mensaje}</p>}
 
                 <button type="button" className="match-comment-reply" onClick={() => { setRespuestaA(c.id); setTextoComentario(''); }}><span aria-hidden="true">↳</span> Responder</button>

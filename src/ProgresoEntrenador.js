@@ -10,7 +10,6 @@ const fechaBonita = value => {
   const d = new Date(`${String(value).slice(0, 10)}T12:00:00`);
   return Number.isNaN(d.getTime()) ? 'Sin registros' : d.toLocaleDateString('es-CL');
 };
-const valorFecha = value => value ? String(value).slice(0, 10) : '';
 const promedio = value => value == null || value === '' ? '—' : `${Number(value).toFixed(1)}/10`;
 
 export default function ProgresoEntrenador() {

@@ -1,7 +1,6 @@
-import { PanelDenuncias } from "./ModeracionSegura";
 import EvaluacionesDeportivas from './EvaluacionesDeportivas';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, lazy, Suspense } from 'react';
 import './Dashboard.css';
 import AthletixNotificaciones from './AthletixNotificaciones';
 import {useAthletixPush, desvincularAthletixPush} from './AthletixPush';
@@ -10,7 +9,6 @@ import GestionUsuarios from './GestionUsuarios';
 import EjerciciosEntrenador from './EjerciciosEntrenador';
 import GestionVideosAdmin from './GestionVideosAdmin';
 import VideosDeportista from './VideosDeportista';
-import MiAlimentacion from './MiAlimentacion';
 import RutinasEntrenador from './RutinasEntrenador';
 import ProgresoEntrenador from './ProgresoEntrenador';
 import CalendarioDeportivo from './CalendarioDeportivo';
@@ -18,12 +16,14 @@ import AsistenciaEntrenador from './AsistenciaEntrenador';
 import MiAsistencia from './MiAsistencia';
 import Avisos from './Avisos';
 import ReportesAdmin from './ReportesAdmin';
-import AthletixMatch from './AthletixMatch';
 import InicioAthletix from './InicioAthletix';
 import ComunidadChat from './ComunidadChat';
 import MiPerfil from './MiPerfil';
 import MiEntrenador from './MiEntrenador';
 import logoAthletix from "./assets/athletix-logo.jpg";
+
+const MiAlimentacion = lazy(() => import('./MiAlimentacion'));
+const AthletixMatch = lazy(() => import('./AthletixMatch'));
 
 // Iconos del panel: no requieren librerías adicionales.
 function IconoModulo({ tipo }) {
@@ -356,6 +356,7 @@ export default function Dashboard({ perfil, onCerrarSesion, onPerfilActualizado 
           {!esMovil && <AthletixNotificaciones key={perfil.id} usuarioId={perfil.id} onNavegar={(destino) => { if (config.modulos.some(m => m.id === destino)) navegar(destino); }} />}
         </header>
 
+        <Suspense fallback={<p role="status">Cargando módulo…</p>}>
         {seccion === 'perfil' ? (
           <MiPerfil perfil={perfil} onPerfilActualizado={onPerfilActualizado} onCerrarSesion={onCerrarSesion} />
         ) : seccion === 'inicio' ? (
@@ -392,7 +393,7 @@ export default function Dashboard({ perfil, onCerrarSesion, onPerfilActualizado 
 ) : seccion === 'alimentacion' && [2, 3].includes(perfil.rol_id) ? (
    <MiAlimentacion usuarioId={perfil.id} />
 ) : seccion === 'reportes' && perfil.rol_id === 1 ? (
-  <><PanelDenuncias/><ReportesAdmin perfil={perfil} /></>
+  <ReportesAdmin perfil={perfil} />
 ) : seccion === 'avisos' && [1, 2, 3].includes(perfil.rol_id) ? (
   <Avisos perfil={perfil} onVerPartido={(id) => { setPartidoDesdeAviso(id); navegar('mapa'); }} />
 ) : (
@@ -408,7 +409,7 @@ export default function Dashboard({ perfil, onCerrarSesion, onPerfilActualizado 
             <div className="ath-module-notice">
               Estamos preparando este módulo.
               Próximamente mostraremos aquí
-              la información real de Supabase.
+              la información de este módulo.
             </div>
 
             <button
@@ -419,6 +420,7 @@ export default function Dashboard({ perfil, onCerrarSesion, onPerfilActualizado 
             </button>
           </section>
         )}
+        </Suspense>
       </main>
       {confirmarSalida && (
         <div className="ath-logout-overlay" role="presentation" onMouseDown={(e) => { if (e.target === e.currentTarget) setConfirmarSalida(false); }}>

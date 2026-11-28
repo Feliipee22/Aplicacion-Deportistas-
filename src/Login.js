@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { supabase } from './supabase';
 import './Login.css';
+import { SolicitarRecuperacion } from './AthletixCuenta';
 import logoAthletix from './assets/athletix-logo.jpg';
 
 const SITE_KEY = process.env.REACT_APP_TURNSTILE_SITE_KEY;
@@ -85,6 +86,7 @@ function Turnstile({ onToken, resetKey }) {
 }
 
 export default function Login() {
+  const [recuperar, setRecuperar] = useState(false);
   const [vista, setVista] = useState('ingresar');
   const [rut, setRut] = useState('');
   const [password, setPassword] = useState('');
@@ -175,6 +177,7 @@ export default function Login() {
     }
   };
 
+  if (recuperar) return <SolicitarRecuperacion volver={()=>setRecuperar(false)}/>;
   return (
     <main className="ath-auth-page">
       <section className="ath-auth-intro" aria-label="Bienvenida a Athletix">
@@ -210,6 +213,7 @@ export default function Login() {
               </div>
               {mensajeError && <p className="ath-auth-error" role="alert">{mensajeError}</p>}
               <button className="ath-auth-primary" type="submit" disabled={cargando}>{cargando ? 'Ingresando...' : 'Iniciar sesión →'}</button>
+              <button type="button" className="ath-auth-recovery-link" disabled={cargando} onClick={()=>setRecuperar(true)}>¿Olvidaste tu contraseña?</button>
             </form>
           ) : registroExitoso ? (
             <div className="ath-auth-registration-info" role="status">

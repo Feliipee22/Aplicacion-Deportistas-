@@ -1,6 +1,7 @@
 import React, {useState,useEffect,useCallback,useRef} from 'react';
 import {supabase} from './supabase';
 import './AthletixNotificaciones.css';
+import { actualizacionVisible } from './actualizacionVisible';
 export default function AthletixNotificaciones({usuarioId,onNavegar}) {
  const [items,setItems]=useState([]),[total,setTotal]=useState(0),[abierto,setAbierto]=useState(false),[error,setError]=useState(''),[cargando,setCargando]=useState(true),[ocupado,setOcupado]=useState(false);
  const secuencia=useRef(0), activo=useRef(false), caja=useRef(null);
@@ -16,10 +17,13 @@ export default function AthletixNotificaciones({usuarioId,onNavegar}) {
   setItems(lista.data||[]);setTotal(contador.count||0);setError('');
  },[usuarioId]);
  useEffect(()=>{
-  activo.current=true;setItems([]);setTotal(0);setCargando(true);cargar();
-  const canal=supabase.channel('ath-notificaciones-'+usuarioId).on('postgres_changes',{event:'*',schema:'public',table:'ath_notificaciones',filter:'usuario_id=eq.'+usuarioId},cargar).subscribe(s=>{if(s==='SUBSCRIBED')cargar();});
-  const timer=setInterval(cargar,30000);window.addEventListener('focus',cargar);
-  return()=>{activo.current=false;secuencia.current++;clearInterval(timer);window.removeEventListener('focus',cargar);supabase.removeChannel(canal);};
+  const invalidar=()=>{secuencia.current++;};
+  activo.current=true;setItems([]);setTotal(0);setCargando(true);
+  let pendiente;
+  const programar=()=>{clearTimeout(pendiente);pendiente=setTimeout(()=>{if(!document.hidden)cargar();},250);};
+  const canal=supabase.channel('ath-notificaciones-'+usuarioId).on('postgres_changes',{event:'*',schema:'public',table:'ath_notificaciones',filter:'usuario_id=eq.'+usuarioId},()=>programar()).subscribe(s=>{if(s==='SUBSCRIBED')programar();});
+  const detener=actualizacionVisible(cargar,60000);
+  return()=>{activo.current=false;invalidar();clearTimeout(pendiente);detener();supabase.removeChannel(canal);};
  },[usuarioId,cargar]);
  useEffect(()=>{if(!abierto)return;const cerrar=e=>{if(e.key==='Escape'||(e.type==='pointerdown'&&!caja.current?.contains(e.target)))setAbierto(false);};document.addEventListener('keydown',cerrar);document.addEventListener('pointerdown',cerrar);return()=>{document.removeEventListener('keydown',cerrar);document.removeEventListener('pointerdown',cerrar);};},[abierto]);
  async function leer(item){if(ocupado)return;setOcupado(true);try{let q=supabase.from('ath_notificaciones').update({leida:true}).eq('usuario_id',usuarioId).eq('leida',false);if(item)q=q.eq('id',item.id);const {error:e}=await q;if(e){setError('No se pudo marcar como leída.');return;}await cargar();if(item){setAbierto(false);onNavegar(item.modulo);}}finally{setOcupado(false);}}

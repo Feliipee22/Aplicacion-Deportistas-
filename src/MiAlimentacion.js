@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { supabase } from './supabase';
 import { Capacitor } from '@capacitor/core';
@@ -89,11 +89,11 @@ export default function MiAlimentacion() {
   const botonRegistroRef = useRef(null);
 
   const abrirRegistro = () => { setMostrarFormulario(true); };
-  const cerrarRegistro = () => {
+  const cerrarRegistro = useCallback(() => {
     if (guardando || analizando) return;
     setMostrarFormulario(false);
     botonRegistroRef.current?.focus();
-  };
+  }, [guardando, analizando]);
 
   useEffect(() => {
     if (!mostrarFormulario) return undefined;
@@ -118,7 +118,7 @@ export default function MiAlimentacion() {
       document.removeEventListener('keydown', onKey);
       if (foco?.isConnected && typeof foco.focus === 'function') foco.focus();
     };
-  }, [mostrarFormulario, guardando, analizando]);
+  }, [mostrarFormulario, guardando, analizando, cerrarRegistro]);
 
   useEffect(() => {
     if (!foto) { setFotoUrl(''); return undefined; }

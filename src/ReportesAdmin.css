@@ -52,3 +52,42 @@
 @media (max-width: 370px) {
   .ath-report-kpis { grid-template-columns: 1fr; }
 }
+.ath-mod-tabs{display:flex;gap:4px;background:#e7edf1;padding:4px;border-radius:12px;min-width:0}.ath-mod-tabs button{flex:1;min-width:0;border:0;background:transparent;color:#40566b;border-radius:9px;padding:10px 4px;font-size:clamp(11px,3vw,14px);font-weight:700;cursor:pointer}.ath-mod-tabs button[aria-pressed=true]{background:#fff;color:#175e58;box-shadow:0 1px 4px #14283b18}.ath-mod-tabs span{display:inline-block;margin-left:4px;background:#175e58;color:white;border-radius:20px;padding:2px 5px;font-size:10px}.ath-mod-filters{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.ath-mod-filters select,.ath-mod-dialog select,.ath-mod-dialog textarea{border:1px solid #ced9e4;border-radius:9px;background:white;color:#132439;padding:10px;min-width:0;box-sizing:border-box}.ath-mod-filters select{flex:1}.ath-mod-item{display:grid;gap:10px;overflow-wrap:anywhere}.ath-mod-head{display:flex;justify-content:space-between;align-items:center;gap:8px}.ath-mod-status{font-size:12px;background:#e8efed;color:#175e58;padding:5px 8px;border-radius:20px}.ath-mod-status.pending{background:#fff1d7;color:#805400}.ath-mod-item dl{display:grid;grid-template-columns:minmax(90px,1fr) 1.4fr;gap:6px;margin:0;font-size:13px}.ath-mod-item dt{color:#65758b}.ath-mod-item dd{margin:0;font-weight:600}.ath-mod-evidence{background:#f3f6f8;border-radius:10px;padding:12px}.ath-mod-evidence p,.ath-mod-history p{margin:4px 0 8px;color:#132439;white-space:pre-wrap}.ath-mod-primary{background:#175e58!important;color:white!important;border:0;border-radius:9px;padding:10px 14px;font-weight:700;cursor:pointer}.ath-mod-primary:disabled{opacity:.5}.ath-mod-overlay{position:fixed;inset:0;z-index:10000;background:#101d2b99;display:grid;place-items:center;padding:16px}.ath-mod-dialog{width:min(100%,460px);max-height:85vh;overflow:auto;box-sizing:border-box;display:grid;gap:12px}.ath-mod-dialog label{display:grid;gap:6px;font-size:13px;font-weight:600}.ath-mod-dialog textarea{min-height:100px;resize:vertical}.ath-ring{width:120px;height:120px;border-radius:50%;display:grid;place-items:center;margin:auto;position:relative}.ath-ring:before{content:'';position:absolute;inset:12px;background:white;border-radius:50%}.ath-ring strong{position:relative;font-size:23px}.ath-report-attendance{text-align:center}.ath-report-bar-row{grid-template-columns:85px minmax(0,1fr) 32px}
+
+/* Ajustes finales de moderación */
+.ath-report-filters{padding:12px 16px;gap:8px 12px}.ath-report-filters small{font-size:12px}.ath-report-attendance{padding:4px 0 12px}.ath-ring{width:104px;height:104px}.ath-ring:before{inset:10px}.ath-mod-options{border:1px solid #ced9e4;border-radius:12px;padding:8px 12px;margin:0;min-width:0}.ath-mod-options legend{font-size:13px;font-weight:700;padding:0 5px}.ath-mod-dialog .ath-mod-options label{display:flex;align-items:center;gap:10px;min-height:42px;cursor:pointer}.ath-mod-options input[type=radio]{accent-color:#175e58;min-height:0!important;width:18px;height:18px;flex:none}.ath-mod-cancel{border:1px solid #dce4eb;border-radius:9px;background:#edf2f5;color:#132439;padding:10px 14px;font-weight:600;cursor:pointer}.ath-mod-dialog .ath-mod-filters>button{flex:1}.ath-mod-dialog .ath-mod-filters>button.ath-mod-primary{flex:2}.ath-mod-empty{display:grid;justify-items:center;text-align:center;gap:10px;padding:20px 8px}.ath-mod-empty svg{color:#175e58}.ath-mod-empty small{max-width:260px}.ath-mod-dialog textarea{width:100%}
+
+/* Reportes: navegación adaptable y controles consistentes */
+.ath-report-root { display:grid; gap:16px; min-width:0; color:#152637; }
+.ath-report-root > .ath-mod-tabs { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:6px; padding:6px; background:#e5ecf1; border-radius:14px; }
+.ath-report-root > .ath-mod-tabs button { display:flex; align-items:center; justify-content:center; flex-wrap:wrap; gap:4px; padding:10px 6px; font-size:13px; min-height:44px; line-height:1.3; white-space:normal; }
+.ath-report-root > .ath-mod-tabs button[aria-pressed=true] { background:#152637; color:#fff; box-shadow:none; }
+.ath-report-root > .ath-mod-tabs span { margin:0; background:#d9f4ac; color:#152637; }
+.ath-report-root .ath-report-kpis { grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; }
+.ath-report-root .ath-report-kpi { padding:14px; gap:6px; }
+.ath-report-root .ath-report-filters { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+.ath-report-root .ath-report-filters small { grid-column:1/-1; }
+.ath-report-root .ath-report-filters input, .ath-history-filters input, .ath-history-filters select, .ath-report-root .ath-support select { box-sizing:border-box; display:block; width:100%; min-width:0; max-width:100%; min-height:44px; border:1px solid #cedbe6; border-radius:10px; padding:9px 10px; background:#fff; color:#152637; font:inherit; font-size:14px; }
+.ath-history { display:grid; gap:12px; min-width:0; }
+.ath-history h2,.ath-report-root .ath-support h3 { font-size:18px; margin:0 0 2px; line-height:1.35; }
+.ath-history-filters { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; background:#fff; border:1px solid #dce4eb; border-radius:16px; padding:14px; }
+.ath-history-filters label,.ath-report-root .ath-support > label { display:grid; gap:6px; min-width:0; font-size:13px; font-weight:650; }
+.ath-history-item { display:grid; gap:6px; background:#fff; border:1px solid #dce4eb; border-left:4px solid #a6d96b; border-radius:12px; padding:14px; overflow-wrap:anywhere; }
+.ath-history-item strong { font-size:15px; }
+.ath-history-item p { margin:0; font-size:13px; color:#40566b; }
+.ath-history-item small { color:#60758b; font-size:12px; line-height:1.5; }
+.ath-history-pages { display:flex; gap:8px; }
+.ath-history-pages:empty { display:none; }
+.ath-history-pages button { border:1px solid #cedbe6; border-radius:9px; background:#fff; color:#152637; padding:10px 16px; font-weight:600; cursor:pointer; }
+.ath-report-root .ath-support { display:grid; gap:12px; min-width:0; }
+.ath-report-root .ath-support > label { background:#fff; border:1px solid #dce4eb; border-radius:14px; padding:12px; }
+@media(max-width:760px){ .ath-report-root > .ath-mod-tabs {grid-template-columns:repeat(6,minmax(0,1fr));} .ath-report-root > .ath-mod-tabs button {grid-column:span 2;} .ath-report-root > .ath-mod-tabs button:nth-child(n+4){grid-column:span 3;} .ath-report-root .ath-report-kpis {grid-template-columns:repeat(2,minmax(0,1fr));} }
+@media(max-width:480px){.ath-history-filters label:nth-child(-n+2){grid-column:1/-1;} .ath-history-filters {padding:12px;gap:10px;} .ath-report-root > .ath-mod-tabs button{font-size:12px;} }
+@media(max-width:320px){.ath-history-filters,.ath-report-root .ath-report-filters{grid-template-columns:minmax(0,1fr);} }
+
+/* Navegación de Reportes: tarjetas individuales */
+.ath-report-root > .ath-mod-tabs { background:transparent; padding:0; gap:8px; }
+.ath-report-root > .ath-mod-tabs button { box-sizing:border-box; background:#fff; border:1px solid #cedbe6; border-radius:12px; color:#152637; min-height:48px; box-shadow:0 1px 2px #1526370a; transition:background .15s,border-color .15s; }
+.ath-report-root > .ath-mod-tabs button[aria-pressed=false]:hover { background:#f0f6eb; border-color:#a6d96b; }
+.ath-report-root > .ath-mod-tabs button[aria-pressed=true] { background:#152637; border-color:#152637; color:#fff; box-shadow:0 2px 4px #15263720; }
+.ath-report-root > .ath-mod-tabs button:focus-visible { outline:2px solid #175e58; outline-offset:2px; }

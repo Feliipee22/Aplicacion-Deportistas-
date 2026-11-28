@@ -44,7 +44,7 @@ export default function SeguimientoIA({ planId, sesiones = [], estado, segundosE
     if (e) setError('No se pudo consultar el seguimiento: ' + e.message);
     else { setRegistros(data || []); setError(''); }
   }, [planId]);
-  useEffect(() => { setRegistros([]); setIndice(sesionEntrenada); setOk(''); cargar(); }, [cargar]);
+  useEffect(() => { setRegistros([]); setIndice(sesionEntrenada); setOk(''); cargar(); }, [cargar, sesionEntrenada]);
   // La fecha real de ejecución nunca se hereda de la programación futura.
   useEffect(() => { if (modoRegistroGuiado) setFecha(fechaLocal()); }, [modoRegistroGuiado, programacionId, sesionEntrenada]);
   useEffect(() => { setEjercicios(inicialEjercicios(sesiones[indice])); }, [indice, sesiones]);
