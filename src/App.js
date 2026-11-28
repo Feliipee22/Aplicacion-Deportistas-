@@ -3,6 +3,8 @@ import {AthletixPresenceProvider} from './AthletixPresence';
 import React, { useEffect, useState } from 'react';
 import { supabase } from './supabase';
 import Login from './Login';
+import { App as CapacitorApp } from '@capacitor/app';
+import { Capacitor } from '@capacitor/core';
 import { NuevaClave } from './AthletixCuenta';
 import Dashboard from './Dashboard';
 
@@ -15,6 +17,8 @@ const nombresRoles = {
 };
 
 function App() {
+  const [intento, setIntento] = useState(0);
+  const [errorSesion, setErrorSesion] = useState('');
   const [recuperacion, setRecuperacion] = useState(false);
   const [sesion, setSesion] = useState(undefined);
   const [perfil, setPerfil] = useState(null);
@@ -22,6 +26,36 @@ function App() {
   const [errorPerfil, setErrorPerfil] = useState('');
 
   const idUsuario = sesion?.user?.id;
+  const [avisoEnlace, setAvisoEnlace] = useState('');
+
+  // La confirmación ocurre en el servidor antes de la redirección.
+  // No aceptar sesiones ni tokens provenientes de un esquema externo.
+  useEffect(() => {
+    if (!Capacitor.isNativePlatform()) return undefined;
+    let vigente = true;
+    let listener;
+    const recibir = ({ url } = {}) => {
+      if (!vigente || !url) return;
+      try {
+        const enlace = new URL(url);
+        if (enlace.protocol !== 'athletix:' || enlace.hostname !== 'auth' || enlace.pathname !== '/confirm') return;
+        const fragmento = new URLSearchParams(enlace.hash.slice(1));
+        const fallo = enlace.searchParams.has('error') || enlace.searchParams.has('error_code') || fragmento.has('error') || fragmento.has('error_code');
+        setAvisoEnlace(fallo
+          ? 'El enlace no pudo completarse o ha expirado. Revisa tu correo.'
+          : 'Si confirmaste tu correo, ya puedes iniciar sesión con tu RUT y contraseña.');
+      } catch (_) { /* No registrar enlaces ni credenciales. */ }
+    };
+    const iniciar = async () => {
+      try {
+        listener = await CapacitorApp.addListener('appUrlOpen', recibir);
+        if (!vigente) { await listener.remove(); return; }
+        recibir(await CapacitorApp.getLaunchUrl());
+      } catch (_) { /* El acceso manual permanece disponible. */ }
+    };
+    iniciar();
+    return () => { vigente = false; if (listener) listener.remove().catch(() => {}); };
+  }, []);
 
   // Detectar si el usuario inició o cerró sesión
   useEffect(() => {
@@ -29,13 +63,19 @@ function App() {
 
     supabase.auth.getSession().then(({ data, error }) => {
       if (activo) {
-        setSesion(error ? null : data.session);
+        clearTimeout(limite);
+        if (error) setErrorSesion('No se pudo comprobar la sesión. Intenta nuevamente.');
+        else { setErrorSesion(''); setSesion(data.session); }
       }
-    });
+    }).catch(() => { if (activo) setErrorSesion('No se pudo conectar. Intenta nuevamente.'); });
+    const limite = setTimeout(() => { if (activo) setErrorSesion('La conexión está tardando demasiado.'); }, 20000);
 
     const { data: { subscription } } =
       supabase.auth.onAuthStateChange((evento, nuevaSesion) => {
         if (activo) {
+          clearTimeout(limite);
+          setErrorSesion('');
+          if (!nuevaSesion) setRecuperacion(false);
           if (evento === "PASSWORD_RECOVERY") setRecuperacion(true);
           setSesion(nuevaSesion);
         }
@@ -43,9 +83,10 @@ function App() {
 
     return () => {
       activo = false;
+      clearTimeout(limite);
       subscription.unsubscribe();
     };
-  }, []);
+  }, [intento]);
 
   // Buscar el perfil correspondiente al usuario autenticado
   useEffect(() => {
@@ -63,6 +104,7 @@ function App() {
       setPerfil(null);
       setErrorPerfil('');
 
+      try {
       const { data, error } = await supabase
         .from('usuarios')
         .select('id, nombre, rol_id, estado, correo, telefono')
@@ -85,7 +127,8 @@ function App() {
         setPerfil(data);
       }
 
-      setCargandoPerfil(false);
+      } catch (_) { if (activo) setErrorPerfil('No se pudo conectar. Intenta nuevamente.'); }
+      finally { if (activo) setCargandoPerfil(false); }
     };
 
     obtenerPerfil();
@@ -93,7 +136,7 @@ function App() {
     return () => {
       activo = false;
     };
-  }, [idUsuario]);
+  }, [idUsuario, intento]);
 
   // Revalidar el estado del perfil durante sesiones ya abiertas.
   // No reemplaza las políticas RLS ni las verificaciones del servidor.
@@ -132,6 +175,8 @@ function App() {
     };
   }, [idUsuario]);
 
+  useEffect(() => { if (idUsuario) setAvisoEnlace(''); }, [idUsuario]);
+
   const actualizarPerfil = (cambios) => setPerfil((actual) => actual ? { ...actual, ...cambios } : actual);
 
   const cerrarSesion = async () => {
@@ -139,13 +184,18 @@ function App() {
   };
 
   if (sesion === undefined) {
-    return <p>Iniciando Athletix...</p>;
+    return <main style={{padding:24}}><p>{errorSesion || 'Iniciando Athletix...'}</p>{errorSesion && <button onClick={()=>{setErrorSesion('');setIntento(n=>n+1);}}>Reintentar</button>}</main>;
   }
 
   if (recuperacion && sesion) return <NuevaClave finalizar={async()=>{await supabase.auth.signOut();setRecuperacion(false);}}/>;
 
   if (!sesion) {
-    return <Login />;
+    return <>
+      {avisoEnlace && <div role="status" style={{padding: '12px 16px', background: '#eef4fb', color: '#17365d'}}>
+        {avisoEnlace} <button type="button" onClick={() => setAvisoEnlace('')}>Cerrar</button>
+      </div>}
+      <Login />
+    </>;
   }
 
   if (
@@ -160,6 +210,7 @@ function App() {
       <main style={{ padding: '40px' }}>
         <h1>ATHLETIX</h1>
         <p>{errorPerfil}</p>
+        <button onClick={()=>setIntento(n=>n+1)}>Reintentar</button>
         <button onClick={cerrarSesion}>
           Cerrar sesión
         </button>
